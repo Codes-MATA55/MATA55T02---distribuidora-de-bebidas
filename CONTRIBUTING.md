@@ -1,12 +1,11 @@
-## Regras de Código e Padrões de Commit
+## Padrão de Commits
 
-Nosso projeto segue o padrão oficial de desenvolvimento Python (PEP 8), que será fiscalizado automaticamente pelo formatador Flake8.
-Para manter o histórico do projeto organizado, todas as mensagens de commit devem seguir este formato:
+Para manter o histórico do projeto organizado, todas as mensagens de commit devem seguir este formato de texto puro:
 
 `tipo(escopo): descrição`
 
 - **`tipo`**: Indica a intenção da mudança (se é um recurso novo, uma correção, etc.).
-- **`escopo`**: Opcional, mas ajuda muito. Indica a parte do sistema que foi afetada (ex: `auth`, `banco`, `frontend`, `readme`).
+- **`nomeSobrenome` :**  Identificação do aluno responsável pelo commit.
 - **`descrição`**: Um resumo curto do que foi feito, imperativo (ex: "adiciona", "corrige", "remove") e sem ponto final.
 
 ---
