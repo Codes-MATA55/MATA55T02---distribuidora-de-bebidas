@@ -1,8 +1,9 @@
-## Padrão de Commits
+## Regras de Código e Padrões de Commit
 
+Nosso projeto segue o padrão oficial de desenvolvimento Python (PEP 8), que será fiscalizado automaticamente pelo Flake8.
 Para manter o histórico do projeto organizado, todas as mensagens de commit devem seguir este formato de texto puro:
 
-`tipo(escopo): descrição`
+`tipo(nomeSobrenome): descrição`
 
 - **`tipo`**: Indica a intenção da mudança (se é um recurso novo, uma correção, etc.).
 - **`nomeSobrenome` :**  Identificação do aluno responsável pelo commit.
@@ -13,17 +14,17 @@ Para manter o histórico do projeto organizado, todas as mensagens de commit dev
 ### Principais Tipos
 
 - **feat**: Quando você adiciona uma função nova no sistema.
-    - *Exemplo:* `feat(auth): adiciona tela de login`
+    - *Exemplo:* `feat(joao-silva): adiciona tela de login`
 - **fix**: Quando você corrige um erro ou bug.
-    - *Exemplo:* `fix(banco): corrige conexao com mysql`
+    - *Exemplo:* `fix(joao-silva): corrige conexao com mysql`
 - **refactor**: Quando você limpa ou melhora um código existente (sem mudar o que ele faz).
-    - *Exemplo:* `refactor: divide funcao gigante`
+    - *Exemplo:* `refactor(joao-silva): divide funcao gigante`
 - **style**: Quando altera apenas formatação, espaços ou estilo visual.
-    - *Exemplo:* `style: corrige espacamentos`
+    - *Exemplo:* `style(joao-silva): corrige espacamentos`
 - **chore**: Quando mexe em configurações, instalação de pacotes ou arquivos do Git.
-    - *Exemplo:* `chore: adiciona plugins no requirements`
+    - *Exemplo:* `chore(joao-silva): adiciona plugins no requirements`
 - **docs**: Quando altera documentações ou textos do README.
-    - *Exemplo:* `docs: atualiza instrucoes do projeto`
+    - *Exemplo:* `docs(joao-silva): atualiza instrucoes do projeto`
 
 ---
 
