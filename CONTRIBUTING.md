@@ -1,7 +1,10 @@
 ## Regras de Código e Padrões de Commit
 
 Nosso projeto segue o padrão oficial de desenvolvimento Python (PEP 8), que será fiscalizado automaticamente pelo Flake8.
-Para manter o histórico do projeto organizado, todas as mensagens de commit devem seguir este formato de texto puro:
+
+O fluxo do projeto deve seguir a seguinte ordem: branch-equipe -> homologacao -> main
+
+Para manter o histórico do projeto organizado, todas as mensagens de commit devem seguir este formato de texto:
 
 `tipo(nomeSobrenome): descrição`
 
