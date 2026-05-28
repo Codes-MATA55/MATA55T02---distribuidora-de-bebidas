@@ -1,6 +1,6 @@
 ## Regras de Código e Padrões de Commit
 
-Nosso projeto segue o padrão oficial de desenvolvimento Python (PEP 8), que será fiscalizado automaticamente pelo Flake8.
+Nosso projeto segue o padrão oficial de desenvolvimento Python (PEP 8), que será fiscalizado automaticamente pelo linter Flake8.
 
 O fluxo do projeto deve seguir a seguinte ordem: branch-equipe -> homologacao -> main
 
