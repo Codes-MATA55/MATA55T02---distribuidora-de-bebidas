@@ -1,6 +1,7 @@
 import unittest
 from src.domain.produtos.produto import Produto
 
+
 class TestProduto(unittest.TestCase):
     def setUp(self):
         self.produto_valido = Produto(
