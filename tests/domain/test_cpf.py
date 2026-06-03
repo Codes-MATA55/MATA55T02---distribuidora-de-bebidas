@@ -1,6 +1,7 @@
 import unittest
 from src.domain.shared.value_objects.cpf import CPF
 
+
 class TestCPF(unittest.TestCase):
     def test_cpf_valido(self):
         cpf = CPF("11144477735")
@@ -21,6 +22,7 @@ class TestCPF(unittest.TestCase):
     def test_cpf_digitos_verificadores_errados(self):
         with self.assertRaisesRegex(ValueError, "CPF inválido"):
             CPF("11144477736")
+
 
 if __name__ == '__main__':
     unittest.main()

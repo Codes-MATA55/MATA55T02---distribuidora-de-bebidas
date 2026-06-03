@@ -24,4 +24,3 @@ class Categoria:
         self.id = id
         self.nome = nome
 
-

@@ -1,6 +1,7 @@
 import unittest
 from src.domain.shared.value_objects.telefone import Telefone
 
+
 class TestTelefone(unittest.TestCase):
     def test_celular_valido(self):
         telefone = Telefone("71988887777")
@@ -25,6 +26,7 @@ class TestTelefone(unittest.TestCase):
     def test_limpar_mascaras(self):
         telefone = Telefone("(71) 98888-7777")
         self.assertEqual(telefone.valor, "71988887777")
+
 
 if __name__ == '__main__':
     unittest.main()

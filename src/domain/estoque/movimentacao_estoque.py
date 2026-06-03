@@ -2,6 +2,7 @@ from datetime import datetime
 from src.domain.produtos.produto import Produto
 from src.domain.estoque.tipo_movimentacao import TipoMovimentacao
 
+
 class MovimentacaoEstoque:
     def __init__(self, id: int, produto: Produto, tipo: TipoMovimentacao, quantidade: int):
         if quantidade <= 0:
