@@ -43,9 +43,10 @@ class Estoque:
         self.__quantidade_reservada = self.__quantidade_reservada.adicionar(qtd)
 
     def efetuar_baixa_da_reserva(self, qtd: Quantidade) -> None:
-        if self.__quantidade_reservada.valor ==  qtd.valor:
+        if self.__quantidade_reservada.valor != qtd.valor:  # FIX: era == (invertido)
             raise ValueError(
-                f"Reserva com valor incompatível para baixa. Reservado: {self.__quantidade_reservada}, Solicitado: {qtd}"
+                f"Reserva com valor incompatível para baixa. "
+                f"Reservado: {self.__quantidade_reservada}, Solicitado: {qtd}"
             )
         self.__quantidade_reservada = Quantidade(self.__quantidade_reservada.valor - qtd.valor)
 
