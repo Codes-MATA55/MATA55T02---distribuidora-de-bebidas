@@ -1,6 +1,5 @@
 from __future__ import annotations
 import uuid
-
 from estoque.value_objects import Quantidade
 
 
@@ -39,16 +38,27 @@ class Estoque:
             raise ValueError(
                 f"Estoque insuficiente. Disponível: {self.__quantidade_disponivel}, Solicitado: {qtd}"
             )
-        self.__quantidade_disponivel = Quantidade(self.__quantidade_disponivel.valor - qtd.valor)
+        self.__quantidade_disponivel = self.__quantidade_disponivel.subtrair(qtd)
         self.__quantidade_reservada = self.__quantidade_reservada.adicionar(qtd)
 
     def efetuar_baixa_da_reserva(self, qtd: Quantidade) -> None:
+        """Confirma a saída do estoque. A reserva é consumida e não volta ao disponível."""
         if self.__quantidade_reservada.valor != qtd.valor:  # FIX: era == (invertido)
             raise ValueError(
                 f"Reserva com valor incompatível para baixa. "
                 f"Reservado: {self.__quantidade_reservada}, Solicitado: {qtd}"
             )
-        self.__quantidade_reservada = Quantidade(self.__quantidade_reservada.valor - qtd.valor)
+        self.__quantidade_reservada = self.__quantidade_reservada.subtrair(qtd)
+
+    def cancelar_reserva(self, qtd: Quantidade) -> None:
+        """Cancela a reserva e devolve a quantidade ao disponível."""
+        if self.__quantidade_reservada.valor != qtd.valor:
+            raise ValueError(
+                f"Reserva com valor incompatível para cancelamento. "
+                f"Reservado: {self.__quantidade_reservada}, Solicitado: {qtd}"
+            )
+        self.__quantidade_reservada = self.__quantidade_reservada.subtrair(qtd)
+        self.__quantidade_disponivel = self.__quantidade_disponivel.adicionar(qtd)
 
     def repor(self, qtd: Quantidade) -> None:
         self.__quantidade_disponivel = self.__quantidade_disponivel.adicionar(qtd)
