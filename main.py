@@ -1,58 +1,97 @@
-"""
-Distribuidora de Bebidas POO
-"""
-
 import sys
 import os
 
-# Adiciona o diretório raiz ao path para permitir imports absolutos
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from src.bebida.cerveja import Cerveja
-from src.bebida.refrigerante import Refrigerante
-from src.bebida.suco import Suco
-
-from src.estoque.estoque import Estoque
-
-from src.pedido.pedido import Pedido
-from src.pedido.item_pedido import ItemPedido
-
-from src.separacao.fifo import FIFOSeparacao
-
-from src.expedicao.regras import ValidadorExpedicao
-
-from src.usuario.operador import Operador, Supervisor, Gerente
-
-from src.observadores.observer import EventBus
-from src.observadores.logger import LoggerObserver, MonitoramentoObserver, AtualizacaoEstoqueObserver
-
-from src.exceptions.regras_negocio import (
+from src.bebida.cerveja import Cerveja  # noqa: E402
+from src.bebida.refrigerante import Refrigerante  # noqa: E402
+from src.bebida.suco import Suco  # noqa: E402
+from src.estoque.estoque import Estoque  # noqa: E402
+from src.pedido.pedido import Pedido  # noqa: E402
+from src.pedido.item_pedido import ItemPedido  # noqa: E402
+from src.separacao.fifo import FIFOSeparacao  # noqa: E402
+from src.expedicao.regras import ValidadorExpedicao  # noqa: E402
+from src.usuario.operador import Operador, Supervisor, Gerente  # noqa: E402
+from src.observadores.observer import EventBus  # noqa: E402
+from src.observadores.logger import (  # noqa: E402
+    MonitoramentoObserver,
+    AtualizacaoEstoqueObserver,
+)
+from src.exceptions.regras_negocio import (  # noqa: E402
     TransicaoDeEstadoInvalidaException,
     RegraDeExpedicaoVioladaException,
 )
 
 
 def separador(titulo: str) -> None:
-    print(f"\n")
+    print(f"\n{'='*60}")
     print(f"  {titulo}")
-    
+    print(f"{'='*60}")
 
 
 def subsecao(titulo: str) -> None:
     print(f"\n--- {titulo} ---")
 
+def criar_catalogo() -> tuple:
+    separador("1. Criando Catálogo (Hierarquia de bebidas)")
 
-def main() -> None:
-    print("\nDISTRIBUIDORA DE BEBIDAS")
-    print("     Demonstração de POO, DDD e Design Patterns\n")
+    cerveja = Cerveja(
+        nome="Original",
+        volume_ml=350,
+        preco_unitario=4.50,
+        tipo="Original",
+    )
+    refrigerante = Refrigerante(
+        nome="Coca Cola Zero",
+        volume_ml=350,
+        preco_unitario=3.20,
+        sabor="Coca",
+        is_diet=False,
+    )
+    suco = Suco(
+        nome="Suco de Laranja",
+        volume_ml=1000,
+        preco_unitario=8.90,
+        fruta="Laranja",
+    )
+
+    for bebida in [cerveja, refrigerante, suco]:
+        print(f"  {bebida.descricao_completa()}")
+
+    return cerveja, refrigerante, suco
 
 
-    # 1. Config event bus
+def abastecer_estoque(cerveja, refrigerante, suco) -> Estoque:
+    separador("2. Gerenciador de Estoque")
 
-    separador("1. Config Event bus")
+    estoque = Estoque()
+    for bebida in [cerveja, refrigerante, suco]:
+        estoque.registrar_produto(bebida)
+
+    subsecao("Entradas de estoque")
+    entradas = [
+        (cerveja.id, 50_000, "Lote diário de cervejas"),
+        (refrigerante.id, 30_000, "Lote diário de refrigerantes"),
+        (suco.id, 100_000, "Lote diário de sucos"),
+    ]
+    for pid, qtd, motivo in entradas:
+        estoque.entrada(pid, qtd, motivo)
+        prod = estoque.produto(pid)
+        print(f"{prod.nome}: +{qtd:,} unidades")
+
+    subsecao("Saldos atuais")
+    for info in estoque.resumo().values():
+        print(
+            f"{info['nome']} ({info['categoria']}): "
+            f"{info['saldo']:,} un."
+        )
+
+    return estoque
+
+def configurar_observers(estoque: Estoque) -> tuple:
+    separador("3. Config event bus")
 
     event_bus = EventBus()
-
     monitoramento = MonitoramentoObserver()
 
     todos_eventos = [
@@ -61,99 +100,37 @@ def main() -> None:
         "PEDIDO_ENTREGUE",
         "PEDIDO_CANCELADO",
     ]
+    event_bus.assinar_todos(todos_eventos, monitoramento)
+    event_bus.assinar("PEDIDO_ENTREGUE", AtualizacaoEstoqueObserver(estoque))
+    print("Observer registrados")
+
+    return event_bus, monitoramento
 
 
-    # 2. Catálogo de Bebidas
+def demonstrar_fluxo_completo(
+    cerveja, refrigerante, suco, estoque, event_bus
+) -> None:
+    separador("4 Fluxo de pedidos")
 
-    separador("2. Catálogo de Bebidas")
+    operador = Operador(nome="Alessandro Libertador")
+    print(f"Operador: {operador}")
 
-    cerveja_original = Cerveja(
-        nome="Original",
-        volume_ml=350,
-        preco_unitario=4.50,
-        tipo="Original",
-    )
-    refrigerante_coca = Refrigerante(
-        nome="Coca Zero",
-        volume_ml=350,
-        preco_unitario=3.20,
-        sabor="Coca",
-        is_diet=True,
-    )
-    suco_laranja = Suco(
-        nome="Suco de Laranja",
-        volume_ml=1000,
-        preco_unitario=8.90,
-        fruta="Laranja",
-        percentual_polpa=100.0,
-    )
+    pedido = Pedido(cliente="Mercado Ufba", event_bus=event_bus)
+    pedido.adicionar_item(ItemPedido(cerveja.id, cerveja, 500))
+    pedido.adicionar_item(ItemPedido(refrigerante.id, refrigerante, 300))
+    pedido.adicionar_item(ItemPedido(suco.id, suco, 1_000))
 
-    for bebida in [cerveja_original, refrigerante_coca, suco_laranja]:
-        print(f"   {bebida.descricao_completa()}")
+    print(f"   Histórico de estados: {pedido.historico_estados}")
 
+    subsecao("Separação")
+    FIFOSeparacao().separar(pedido, estoque)
 
-    # 3. Estoque
-
-    separador("3. GERENCIANDO ESTOQUE")
-
-    estoque = Estoque()
-
-    # Registra produtos no catálogo
-    for bebida in [cerveja_original, refrigerante_coca, suco_laranja]:
-        estoque.registrar_produto(bebida)
-
-    # Conecta observer de estoque ao event bus após criação do estoque
-    obs_estoque = AtualizacaoEstoqueObserver(estoque)
-    event_bus.assinar("PEDIDO_ENTREGUE", obs_estoque)
-
-    # Entrada de estoque (simula escala da distribuidora)
-    subsecao("Entradas de estoque")
-    entradas = [
-        (cerveja_original.id, 50_000, "Lote diário de cervejas"),
-        (refrigerante_coca.id, 30_000, "Lote diário de refrigerantes"),
-        (suco_laranja.id, 100_000, "Lote diário de sucos"),
-    ]
-    for pid, qtd, motivo in entradas:
-        estoque.entrada(pid, qtd, motivo)
-        prod = estoque.produto(pid)
-        print(f" {prod.nome}: +{qtd:,} unidades")
-
-    subsecao("Qtd atuais")
-    for pid, info in estoque.resumo().items():
-        print(f"  {info['nome']} ({info['categoria']}): {info['saldo']:,} un.")
-
-    # 4. Fluxo do pedido
-
-    separador("4. Fluxo do pedido")
-
-    operador = Operador(nome="Alessandro Jose Lucas Luan")
-    print(f" Operador: {operador}")
-
-    # Cria pedido
-    pedido = Pedido(cliente="Mercado UFBA", event_bus=event_bus)
-    pedido.adicionar_item(ItemPedido(cerveja_original.id, cerveja_original, 500))
-    pedido.adicionar_item(ItemPedido(refrigerante_coca.id, refrigerante_coca, 300))
-    pedido.adicionar_item(ItemPedido(suco_laranja.id, suco_laranja, 1_000))
-
-    print(f"\n{pedido}")
-    print(f"Status: {pedido.historico_estados}")
-
-    # Separação via Strategy FIFO
-    subsecao("Separação (Strategy: FIFO)")
-    estrategia_fifo = FIFOSeparacao()
-    estrategia_fifo.separar(pedido, estoque)
-    print(f"\nEstado após separação: {pedido.estado_atual}")
-    print(f"Histórico: {pedido.historico_estados}")
-
-    # Validação + Expedição via Specification Pattern
-    subsecao("Expedição (Specification Pattern)")
-    validador = ValidadorExpedicao()
-    validador.validar(pedido, estoque)
-    print("Todas as regras de expedição aprovadas.")
+    subsecao("Envio")
+    ValidadorExpedicao().validar(pedido, estoque)
+    print("Todas as regras de envio aprovadas.")
     pedido.iniciar_expedicao()
     print(f"Estado: {pedido.estado_atual}")
 
-    # Entrega
     subsecao("Confirmação de Entrega")
     pedido.confirmar_entrega()
     print(f"Estado final: {pedido.estado_atual}")
@@ -161,72 +138,92 @@ def main() -> None:
     print(f"Valor total: R$ {pedido.valor_total:.2f}")
 
 
-    # 5. DEMONSTRAÇÃO DE CANCELAMENTO
-
-    separador("5. Cancelamento")
+def demonstrar_cancelamento(cerveja, event_bus) -> None:
+    separador("5. Cancelamento do Pedido")
 
     supervisor = Supervisor(nome="Caio Porto")
-    print(f"Supervisor: {supervisor} | Pode cancelar: {supervisor.pode_cancelar_pedido()}")
+    pode = supervisor.pode_cancelar_pedido()
+    print(f"Supervisor: {supervisor} | Pode cancelar: {pode}")
 
-    pedido_cancelado = Pedido(cliente="Bar da Ufba", event_bus=event_bus)
-    pedido_cancelado.adicionar_item(ItemPedido(cerveja_original.id, cerveja_original, 50))
-    print(f"\n{pedido_cancelado}")
-    pedido_cancelado.cancelar()
-    print(f"Estado: {pedido_cancelado.estado_atual}")
+    pedido = Pedido(cliente="Bar do Lucas", event_bus=event_bus)
+    pedido.adicionar_item(ItemPedido(cerveja.id, cerveja, 50))
+    print(f"\n{pedido}")
+    pedido.cancelar()
+    print(f"Estado: {pedido.estado_atual}")
 
 
-    # 6. Transição Inválida
+def demonstrar_transicao_invalida(cerveja) -> None:
+    separador("6. Teste inválido)")
 
-    separador("6. Transição inválida")
-
-    pedido_invalido = Pedido(cliente="Teste Inválido")
-    pedido_invalido.adicionar_item(ItemPedido(cerveja_original.id, cerveja_original, 10))
+    pedido = Pedido(cliente="Teste Inválido")
+    pedido.adicionar_item(ItemPedido(cerveja.id, cerveja, 10))
     try:
-        pedido_invalido.confirmar_entrega()  # Inválido: Criado → Entregue
+        pedido.confirmar_entrega()
     except TransicaoDeEstadoInvalidaException as e:
-        print(f"BLOQUEADO corretamente: {e}")
+        print(f"Bloqueado corretamente: {e}")
 
 
-    # 7. Bloqueado
+def demonstrar_expedicao_bloqueada(cerveja, estoque) -> None:
+    separador("7. Envio bloqueado")
 
-    separador("7. Bloqueado")
-
-    pedido_sem_separar = Pedido(cliente="Cliente Sem Separar")
-    pedido_sem_separar.adicionar_item(ItemPedido(cerveja_original.id, cerveja_original, 10))
+    pedido = Pedido(cliente="Cliente Sem Separar")
+    pedido.adicionar_item(ItemPedido(cerveja.id, cerveja, 10))
     try:
-        validador.validar(pedido_sem_separar, estoque)
+        ValidadorExpedicao().validar(pedido, estoque)
     except RegraDeExpedicaoVioladaException as e:
         print(f"Bloqueado corretamente:\n{e}")
 
 
-    # 8. Permissão
+def demonstrar_usuarios() -> tuple:
+    separador("8. Hierarquia de usuários")
 
-    separador("8. Permissões")
-
-    gerente = Gerente(nome="Gilberto")
+    operador = Operador(nome="Alessandro Libertador")
+    supervisor = Supervisor(nome="Caio Porto")
+    gerente = Gerente(nome="José Guilherme")
     usuarios = [operador, supervisor, gerente]
 
-    print(f"{'Usuário':<20} {'Nível':<12} {'Cancelar':<10} {'Relatório':<12} {'Estoque'}")
+    cabecalho = (
+        f"{'Usuário':<20} {'Nível':<12} "
+        f"{'Cancelar':<10} {'Relatório':<12} {'Estoque'}"
+    )
+    print(cabecalho)
     print("-" * 65)
     for u in usuarios:
+        cancelar = "Sim" if u.pode_cancelar_pedido() else "Não"
+        relatorio = "Sim" if u.pode_gerar_relatorio() else "Não"
+        estoque_perm = "Sim" if u.pode_alterar_estoque() else "Não"
         print(
             f"{u.nome:<20} {u.nivel_acesso.name:<12} "
-            f"{'Sim' if u.pode_cancelar_pedido() else 'Não':<10} "
-            f"{'Sim' if u.pode_gerar_relatorio() else 'Não':<12} "
-            f"{'Sim' if u.pode_alterar_estoque() else 'Não'}"
+            f"{cancelar:<10} {relatorio:<12} {estoque_perm}"
         )
 
+    return operador, supervisor, gerente
 
-    # 9. Métricas
 
+def exibir_metricas(monitoramento, estoque) -> None:
     separador("9. Métricas")
 
     monitoramento.exibir_metricas()
 
-    print("\nSaldo final:")
-    for pid, info in estoque.resumo().items():
+    print("\nSaldos finais")
+    for info in estoque.resumo().values():
         print(f"  {info['nome']}: {info['saldo']:,} un.")
 
+
+def main() -> None:
+    print("\nDistribuidora de bebidas POO")
+
+
+    cerveja, refrigerante, suco = criar_catalogo()
+    estoque = abastecer_estoque(cerveja, refrigerante, suco)
+    event_bus, monitoramento = configurar_observers(estoque)
+
+    demonstrar_fluxo_completo(cerveja, refrigerante, suco, estoque, event_bus)
+    demonstrar_cancelamento(cerveja, event_bus)
+    demonstrar_transicao_invalida(cerveja)
+    demonstrar_expedicao_bloqueada(cerveja, estoque)
+    demonstrar_usuarios()
+    exibir_metricas(monitoramento, estoque)
 
 
 if __name__ == "__main__":

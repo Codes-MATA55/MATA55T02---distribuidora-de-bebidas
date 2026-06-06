@@ -127,7 +127,7 @@ class TestValidadorExpedicao(unittest.TestCase):
         pedido = self._pedido_separado()
         self.validador.validar(pedido, self.estoque)
         pedido.iniciar_expedicao()
-        self.assertEqual(pedido.estado_atual, "EmExpedicao")
+        self.assertEqual(pedido.estado_atual, "Em Expedição")
         pedido.confirmar_entrega()
         self.assertEqual(pedido.estado_atual, "Entregue")
 

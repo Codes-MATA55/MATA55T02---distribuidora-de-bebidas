@@ -26,6 +26,6 @@ class Suco(Bebida):
     def descricao_completa(self) -> str:
         return (
             f"[{self.categoria}] {self.nome} | Fruta: {self.fruta} | "
-            f"Polpa: {self.percentual_polpa}% | Volume: {self.volume_ml}ml | "
+            f"Volume: {self.volume_ml}ml | "
             f"Preço: R$ {self.preco_unitario:.2f}"
         )

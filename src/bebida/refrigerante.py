@@ -6,9 +6,9 @@ from .bebida import Bebida
 class Refrigerante(Bebida):
     """
     Representa um refrigerante no catálogo da distribuidora.
-    Adiciona atributos específicos como sabor e se é diet/zero.
+    Adiciona atributos específicos como sabor e se é zero.
     """
-    sabor: str = "Cola"
+    sabor: str = "Coca"
     is_diet: bool = False
 
     @property
@@ -16,9 +16,9 @@ class Refrigerante(Bebida):
         return "Refrigerante"
 
     def descricao_completa(self) -> str:
-        variante = "Diet/Zero" if self.is_diet else "Regular"
+        variante = "ero" if self.is_diet else "Regular"
         return (
             f"[{self.categoria}] {self.nome} | Sabor: {self.sabor} | "
-            f"Variante: {variante} | Volume: {self.volume_ml}ml | "
+            f"Volume: {self.volume_ml}ml | "
             f"Preço: R$ {self.preco_unitario:.2f}"
         )

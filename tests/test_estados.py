@@ -156,7 +156,7 @@ class TestEstadosTerminais(unittest.TestCase):
         p.confirmar_entrega()
         self.assertEqual(
             p.historico_estados,
-            ["Criado", "EmSeparacao", "Separado", "EmExpedicao", "Entregue"]
+            ["Criado", "EmSeparacao", "Separado", "Em Envio", "Entregue"]
         )
 
 

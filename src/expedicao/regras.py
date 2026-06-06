@@ -96,7 +96,7 @@ class ValidadorExpedicao:
     def validar(self, pedido: Pedido, estoque: Estoque) -> None:
         """
         Executa todas as regras.
-        Lança RegraDeExpedicaoVioladaException com todas as violações encontradas.
+        Lança Regra De Expedição Violada Exception com todas as violações encontradas.
         """
         violacoes = []
         for regra in self._regras:
