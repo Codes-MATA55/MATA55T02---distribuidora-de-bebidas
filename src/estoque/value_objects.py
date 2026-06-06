@@ -20,5 +20,13 @@ class Quantidade:
     def adicionar(self, outra: Quantidade) -> Quantidade:
         return Quantidade(self.valor + outra.valor)
 
+    def subtrair(self, outra: Quantidade) -> Quantidade:
+        return Quantidade(self.valor - outra.valor)  # validação de negativo já cobre underflow
+
+    def __eq__(self, outra: object) -> bool:
+        if not isinstance(outra, Quantidade):
+            return NotImplemented
+        return self.valor == outra.valor
+
     def __str__(self) -> str:
         return str(self.valor)
