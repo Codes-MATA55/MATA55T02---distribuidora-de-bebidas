@@ -5,6 +5,7 @@ from src.domain.estoque.movimentacao_estoque import MovimentacaoEstoque
 
 
 class TestEstoque(unittest.TestCase):
+
     def setUp(self):
         self.produto = Produto(
             marca="Coca-Cola",
@@ -17,17 +18,17 @@ class TestEstoque(unittest.TestCase):
         )
 
     def test_movimentacao_entrada_sucesso(self):
-        movimentacao = MovimentacaoEstoque(
+        mov = MovimentacaoEstoque(
             id=1,
             produto=self.produto,
             tipo=TipoMovimentacao.ENTRADA,
             quantidade=20
         )
         self.assertEqual(self.produto.qtestoque, 70)
-        self.assertEqual(movimentacao.quantidade, 20)
+        self.assertEqual(mov.quantidade, 20)
 
     def test_movimentacao_saida_sucesso(self):
-        movimentacao = MovimentacaoEstoque(
+        MovimentacaoEstoque(
             id=2,
             produto=self.produto,
             tipo=TipoMovimentacao.SAIDA,
