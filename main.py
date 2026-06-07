@@ -32,8 +32,9 @@ def separador(titulo: str) -> None:
 def subsecao(titulo: str) -> None:
     print(f"\n--- {titulo} ---")
 
+
 def criar_catalogo() -> tuple:
-    separador("1. Criando Catálogo (Hierarquia de bebidas)")
+    separador("1. Criando Catalogo (Hierarquia de bebidas)")
 
     cerveja = Cerveja(
         nome="Original",
@@ -70,9 +71,9 @@ def abastecer_estoque(cerveja, refrigerante, suco) -> Estoque:
 
     subsecao("Entradas de estoque")
     entradas = [
-        (cerveja.id, 50_000, "Lote diário de cervejas"),
-        (refrigerante.id, 30_000, "Lote diário de refrigerantes"),
-        (suco.id, 100_000, "Lote diário de sucos"),
+        (cerveja.id, 50_000, "Lote diario de cervejas"),
+        (refrigerante.id, 30_000, "Lote diario de refrigerantes"),
+        (suco.id, 100_000, "Lote diario de sucos"),
     ]
     for pid, qtd, motivo in entradas:
         estoque.entrada(pid, qtd, motivo)
@@ -88,6 +89,7 @@ def abastecer_estoque(cerveja, refrigerante, suco) -> Estoque:
 
     return estoque
 
+
 def configurar_observers(estoque: Estoque) -> tuple:
     separador("3. Config event bus")
 
@@ -101,7 +103,9 @@ def configurar_observers(estoque: Estoque) -> tuple:
         "PEDIDO_CANCELADO",
     ]
     event_bus.assinar_todos(todos_eventos, monitoramento)
-    event_bus.assinar("PEDIDO_ENTREGUE", AtualizacaoEstoqueObserver(estoque))
+    event_bus.assinar(
+        "PEDIDO_ENTREGUE", AtualizacaoEstoqueObserver(estoque)
+    )
     print("Observer registrados")
 
     return event_bus, monitoramento
@@ -110,7 +114,7 @@ def configurar_observers(estoque: Estoque) -> tuple:
 def demonstrar_fluxo_completo(
     cerveja, refrigerante, suco, estoque, event_bus
 ) -> None:
-    separador("4 Fluxo de pedidos")
+    separador("4. Fluxo de pedidos")
 
     operador = Operador(nome="Alessandro Libertador")
     print(f"Operador: {operador}")
@@ -120,9 +124,9 @@ def demonstrar_fluxo_completo(
     pedido.adicionar_item(ItemPedido(refrigerante.id, refrigerante, 300))
     pedido.adicionar_item(ItemPedido(suco.id, suco, 1_000))
 
-    print(f"   Histórico de estados: {pedido.historico_estados}")
+    print(f"   Historico de estados: {pedido.historico_estados}")
 
-    subsecao("Separação")
+    subsecao("Separacao")
     FIFOSeparacao().separar(pedido, estoque)
 
     subsecao("Envio")
@@ -131,10 +135,10 @@ def demonstrar_fluxo_completo(
     pedido.iniciar_expedicao()
     print(f"Estado: {pedido.estado_atual}")
 
-    subsecao("Confirmação de Entrega")
+    subsecao("Confirmacao de Entrega")
     pedido.confirmar_entrega()
     print(f"Estado final: {pedido.estado_atual}")
-    print(f"Histórico completo: {pedido.historico_estados}")
+    print(f"Historico completo: {pedido.historico_estados}")
     print(f"Valor total: R$ {pedido.valor_total:.2f}")
 
 
@@ -153,9 +157,9 @@ def demonstrar_cancelamento(cerveja, event_bus) -> None:
 
 
 def demonstrar_transicao_invalida(cerveja) -> None:
-    separador("6. Teste inválido)")
+    separador("6. Teste invalido")
 
-    pedido = Pedido(cliente="Teste Inválido")
+    pedido = Pedido(cliente="Teste Invalido")
     pedido.adicionar_item(ItemPedido(cerveja.id, cerveja, 10))
     try:
         pedido.confirmar_entrega()
@@ -175,23 +179,23 @@ def demonstrar_expedicao_bloqueada(cerveja, estoque) -> None:
 
 
 def demonstrar_usuarios() -> tuple:
-    separador("8. Hierarquia de usuários")
+    separador("8. Hierarquia de usuarios")
 
     operador = Operador(nome="Alessandro Libertador")
     supervisor = Supervisor(nome="Caio Porto")
-    gerente = Gerente(nome="José Guilherme")
+    gerente = Gerente(nome="Jose Guilherme")
     usuarios = [operador, supervisor, gerente]
 
     cabecalho = (
-        f"{'Usuário':<20} {'Nível':<12} "
-        f"{'Cancelar':<10} {'Relatório':<12} {'Estoque'}"
+        f"{'Usuario':<20} {'Nivel':<12} "
+        f"{'Cancelar':<10} {'Relatorio':<12} {'Estoque'}"
     )
     print(cabecalho)
     print("-" * 65)
     for u in usuarios:
-        cancelar = "Sim" if u.pode_cancelar_pedido() else "Não"
-        relatorio = "Sim" if u.pode_gerar_relatorio() else "Não"
-        estoque_perm = "Sim" if u.pode_alterar_estoque() else "Não"
+        cancelar = "Sim" if u.pode_cancelar_pedido() else "Nao"
+        relatorio = "Sim" if u.pode_gerar_relatorio() else "Nao"
+        estoque_perm = "Sim" if u.pode_alterar_estoque() else "Nao"
         print(
             f"{u.nome:<20} {u.nivel_acesso.name:<12} "
             f"{cancelar:<10} {relatorio:<12} {estoque_perm}"
@@ -201,7 +205,7 @@ def demonstrar_usuarios() -> tuple:
 
 
 def exibir_metricas(monitoramento, estoque) -> None:
-    separador("9. Métricas")
+    separador("9. Metricas")
 
     monitoramento.exibir_metricas()
 
@@ -212,7 +216,6 @@ def exibir_metricas(monitoramento, estoque) -> None:
 
 def main() -> None:
     print("\nDistribuidora de bebidas POO")
-
 
     cerveja, refrigerante, suco = criar_catalogo()
     estoque = abastecer_estoque(cerveja, refrigerante, suco)

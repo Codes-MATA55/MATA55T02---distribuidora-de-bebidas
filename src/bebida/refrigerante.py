@@ -20,5 +20,5 @@ class Refrigerante(Bebida):
         return (
             f"[{self.categoria}] {self.nome} | Sabor: {self.sabor} | "
             f"Volume: {self.volume_ml}ml | "
-            f"Preço: R$ {self.preco_unitario:.2f}"
+            f"Preco: R$ {self.preco_unitario:.2f}"
         )

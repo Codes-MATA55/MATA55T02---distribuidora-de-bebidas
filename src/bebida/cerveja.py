@@ -5,7 +5,7 @@ from .bebida import Bebida
 @dataclass
 class Cerveja(Bebida):
     """
-    Representa uma cerveja no catálogo da distribuidora.
+    Representa uma cerveja no catalogo da distribuidora.
     """
     tipo: str = "Lager"
 
@@ -17,5 +17,5 @@ class Cerveja(Bebida):
         return (
             f"[{self.categoria}] {self.nome} | Tipo: {self.tipo} | "
             f"Volume: {self.volume_ml}ml | "
-            f"Preço: R$ {self.preco_unitario:.2f}"
+            f"Preco: R$ {self.preco_unitario:.2f}"
         )

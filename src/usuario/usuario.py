@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from enum import Enum, auto
+from enum import Enum
 from uuid import uuid4
 
 
@@ -12,9 +12,8 @@ class NivelAcesso(Enum):
 @dataclass
 class Usuario:
     """
-    Classe base da hierarquia de usuários.
-    Encapsula informações de identidade e nível de acesso.
-    Sem autenticação: apenas demonstra hierarquia e decisões de negócio.
+    Classe base da hierarquia de usuarios.
+    Sem autenticacao: apenas demonstra hierarquia e permissoes.
     """
     nome: str
     id: str = field(default_factory=lambda: str(uuid4()))

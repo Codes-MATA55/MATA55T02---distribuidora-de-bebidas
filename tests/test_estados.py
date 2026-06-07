@@ -1,10 +1,4 @@
-"""
-Testes Unitários: Mudança de Estados do Pedido
-"""
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
+"""Testes Unitarios: Mudanca de Estados do Pedido"""
 import unittest
 from src.bebida.cerveja import Cerveja
 from src.pedido.pedido import Pedido
@@ -32,7 +26,7 @@ class TestEstadosCriado(unittest.TestCase):
     def test_criado_para_em_separacao(self):
         p = _pedido_com_item()
         p.iniciar_separacao()
-        self.assertEqual(p.estado_atual, "Em separaçao")
+        self.assertEqual(p.estado_atual, "EmSeparacao")
 
     def test_criado_para_cancelado(self):
         p = _pedido_com_item()
@@ -96,7 +90,7 @@ class TestEstadosSeparado(unittest.TestCase):
     def test_separado_para_em_expedicao(self):
         p = self._pedido_separado()
         p.iniciar_expedicao()
-        self.assertEqual(p.estado_atual, "Em expedição")
+        self.assertEqual(p.estado_atual, "EmExpedicao")
 
     def test_separado_nao_pode_cancelar(self):
         p = self._pedido_separado()
@@ -137,16 +131,26 @@ class TestEstadosTerminais(unittest.TestCase):
         p.finalizar_separacao()
         p.iniciar_expedicao()
         p.confirmar_entrega()
-        for operacao in [p.cancelar, p.iniciar_separacao, p.iniciar_expedicao, p.confirmar_entrega]:
+        for op in [
+            p.cancelar,
+            p.iniciar_separacao,
+            p.iniciar_expedicao,
+            p.confirmar_entrega,
+        ]:
             with self.assertRaises(TransicaoDeEstadoInvalidaException):
-                operacao()
+                op()
 
     def test_cancelado_nao_aceita_nenhuma_transicao(self):
         p = _pedido_com_item()
         p.cancelar()
-        for operacao in [p.cancelar, p.iniciar_separacao, p.iniciar_expedicao, p.confirmar_entrega]:
+        for op in [
+            p.cancelar,
+            p.iniciar_separacao,
+            p.iniciar_expedicao,
+            p.confirmar_entrega,
+        ]:
             with self.assertRaises(TransicaoDeEstadoInvalidaException):
-                operacao()
+                op()
 
     def test_historico_completo_de_estados(self):
         p = _pedido_com_item()
@@ -156,7 +160,7 @@ class TestEstadosTerminais(unittest.TestCase):
         p.confirmar_entrega()
         self.assertEqual(
             p.historico_estados,
-            ["Criado", "EmSeparacao", "Separado", "Em Envio", "Entregue"]
+            ["Criado", "EmSeparacao", "Separado", "EmExpedicao", "Entregue"],
         )
 
 

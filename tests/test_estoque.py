@@ -1,10 +1,4 @@
-"""
-Testes Unitários: Controle de Estoque
-"""
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
+"""Testes Unitarios: Controle de Estoque"""
 import unittest
 from src.bebida.cerveja import Cerveja
 from src.bebida.refrigerante import Refrigerante
@@ -18,7 +12,9 @@ def _cerveja() -> Cerveja:
 
 
 def _refrigerante() -> Refrigerante:
-    return Refrigerante(nome="Cola Test", volume_ml=600, preco_unitario=3.20)
+    return Refrigerante(
+        nome="Cola Test", volume_ml=600, preco_unitario=3.20
+    )
 
 
 class TestEstoqueEntradaSaida(unittest.TestCase):
@@ -29,26 +25,36 @@ class TestEstoqueEntradaSaida(unittest.TestCase):
         self.estoque.registrar_produto(self.cerveja)
 
     def test_saldo_inicial_zero(self):
-        self.assertEqual(self.estoque.consultar_saldo(self.cerveja.id), 0)
+        self.assertEqual(
+            self.estoque.consultar_saldo(self.cerveja.id), 0
+        )
 
     def test_entrada_aumenta_saldo(self):
         self.estoque.entrada(self.cerveja.id, 100, "Teste")
-        self.assertEqual(self.estoque.consultar_saldo(self.cerveja.id), 100)
+        self.assertEqual(
+            self.estoque.consultar_saldo(self.cerveja.id), 100
+        )
 
     def test_saida_diminui_saldo(self):
         self.estoque.entrada(self.cerveja.id, 100, "Teste")
         self.estoque.saida(self.cerveja.id, 30, "Pedido")
-        self.assertEqual(self.estoque.consultar_saldo(self.cerveja.id), 70)
+        self.assertEqual(
+            self.estoque.consultar_saldo(self.cerveja.id), 70
+        )
 
     def test_multiplas_entradas_acumulam(self):
         self.estoque.entrada(self.cerveja.id, 100, "Lote 1")
         self.estoque.entrada(self.cerveja.id, 200, "Lote 2")
-        self.assertEqual(self.estoque.consultar_saldo(self.cerveja.id), 300)
+        self.assertEqual(
+            self.estoque.consultar_saldo(self.cerveja.id), 300
+        )
 
     def test_saida_exata_zera_estoque(self):
         self.estoque.entrada(self.cerveja.id, 50, "Teste")
         self.estoque.saida(self.cerveja.id, 50, "Total")
-        self.assertEqual(self.estoque.consultar_saldo(self.cerveja.id), 0)
+        self.assertEqual(
+            self.estoque.consultar_saldo(self.cerveja.id), 0
+        )
 
     def test_saida_com_estoque_insuficiente_lanca_excecao(self):
         self.estoque.entrada(self.cerveja.id, 10, "Pouco")
@@ -61,11 +67,11 @@ class TestEstoqueEntradaSaida(unittest.TestCase):
 
     def test_entrada_negativa_lanca_excecao(self):
         with self.assertRaises(ValueError):
-            self.estoque.entrada(self.cerveja.id, -10, "Inválido")
+            self.estoque.entrada(self.cerveja.id, -10, "Invalido")
 
     def test_saida_negativa_lanca_excecao(self):
         with self.assertRaises(ValueError):
-            self.estoque.saida(self.cerveja.id, -5, "Inválido")
+            self.estoque.saida(self.cerveja.id, -5, "Invalido")
 
     def test_produto_nao_registrado_lanca_excecao(self):
         with self.assertRaises(KeyError):
@@ -91,7 +97,7 @@ class TestEstoqueHistorico(unittest.TestCase):
 
     def test_saida_gera_movimentacao(self):
         self.estoque.entrada(self.cerveja.id, 100, "Entrada")
-        self.estoque.saida(self.cerveja.id, 30, "Saída")
+        self.estoque.saida(self.cerveja.id, 30, "Saida")
         hist = self.estoque.historico_completo()
         self.assertEqual(len(hist), 2)
         self.assertEqual(hist[1].tipo, TipoMovimentacao.SAIDA)
@@ -113,7 +119,7 @@ class TestEstoqueHistorico(unittest.TestCase):
             mov.quantidade = 999
 
 
-class TestEstoqueTem_Saldo(unittest.TestCase):
+class TestEstoqueSaldo(unittest.TestCase):
 
     def setUp(self):
         self.estoque = Estoque()
@@ -122,14 +128,20 @@ class TestEstoqueTem_Saldo(unittest.TestCase):
 
     def test_tem_saldo_suficiente_true(self):
         self.estoque.entrada(self.cerveja.id, 100, "Teste")
-        self.assertTrue(self.estoque.tem_saldo_suficiente(self.cerveja.id, 100))
+        self.assertTrue(
+            self.estoque.tem_saldo_suficiente(self.cerveja.id, 100)
+        )
 
     def test_tem_saldo_suficiente_false(self):
         self.estoque.entrada(self.cerveja.id, 5, "Teste")
-        self.assertFalse(self.estoque.tem_saldo_suficiente(self.cerveja.id, 10))
+        self.assertFalse(
+            self.estoque.tem_saldo_suficiente(self.cerveja.id, 10)
+        )
 
     def test_produto_nao_registrado_retorna_false(self):
-        self.assertFalse(self.estoque.tem_saldo_suficiente("nao-existe", 1))
+        self.assertFalse(
+            self.estoque.tem_saldo_suficiente("nao-existe", 1)
+        )
 
 
 if __name__ == "__main__":

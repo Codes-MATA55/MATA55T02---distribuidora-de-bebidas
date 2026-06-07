@@ -27,5 +27,5 @@ class Suco(Bebida):
         return (
             f"[{self.categoria}] {self.nome} | Fruta: {self.fruta} | "
             f"Volume: {self.volume_ml}ml | "
-            f"Preço: R$ {self.preco_unitario:.2f}"
+            f"Preco: R$ {self.preco_unitario:.2f}"
         )
