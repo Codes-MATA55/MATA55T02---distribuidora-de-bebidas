@@ -16,9 +16,9 @@ class Refrigerante(Bebida):
         return "Refrigerante"
 
     def descricao_completa(self) -> str:
-        variante = "ero" if self.is_diet else "Regular"
         return (
-            f"[{self.categoria}] {self.nome} | Sabor: {self.sabor} | "
+            f"[{self.categoria}] {self.nome} | "
+            f"Sabor: {self.sabor} | "
             f"Volume: {self.volume_ml}ml | "
             f"Preco: R$ {self.preco_unitario:.2f}"
         )

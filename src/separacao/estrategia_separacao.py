@@ -5,12 +5,10 @@ from ..estoque.estoque import Estoque
 
 class EstrategiaSeparacao(ABC):
     """
-    Interface base para o Strategy Pattern de separação.
-
-    A arquitetura permite que novas estratégias sejam adicionadas
-    sem modificar o código existente (Princípio Aberto/Fechado).
-
-    Estratégias planejadas:
+    Interface base para o Strategy Pattern de separacao.
+    A arquitetura permite que novas estrategias sejam adicionadas
+    sem modificar o codigo existente (Principio Aberto/Fechado).
+    Estrategias planejadas:
     - FIFO (implementado)
     - LIFO (futuro)
     - Prioridade (futuro)
@@ -20,13 +18,12 @@ class EstrategiaSeparacao(ABC):
     @abstractmethod
     def separar(self, pedido: Pedido, estoque: Estoque) -> None:
         """
-        Executa a separação do pedido conforme a estratégia.
-        Deve transicionar o pedido para o estado correto ao finalizar.
+        Executa a separacao do pedido conforme a estrategia.
         """
         ...
 
     @property
     @abstractmethod
     def nome(self) -> str:
-        """Nome descritivo da estratégia."""
+        """Nome descritivo da estrategia."""
         ...

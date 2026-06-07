@@ -1,1 +1,1 @@
-from .operador import Supervisor
+__all__ = ["Supervisor"]
