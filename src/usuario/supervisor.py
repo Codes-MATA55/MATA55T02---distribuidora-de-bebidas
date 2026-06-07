@@ -1,1 +1,1 @@
-__all__ = ["Supervisor"]
+from .operador import Supervisor  # noqa: F401
