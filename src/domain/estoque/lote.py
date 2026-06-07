@@ -1,13 +1,14 @@
 from datetime import date
 from src.domain.produtos.produto import Produto
 
+
 class Lote:
     def __init__(self, id: int, produto: Produto, quantidade_inicial: int, data_validade: date):
         if quantidade_inicial <= 0:
             raise ValueError("A quantidade inicial do lote deve ser maior que zero")
         if not isinstance(data_validade, date):
             raise ValueError("A data de validade deve ser um objeto válido do tipo date")
-        
+
         self._id = id
         self._produto = produto
         self._quantidade_inicial = quantidade_inicial

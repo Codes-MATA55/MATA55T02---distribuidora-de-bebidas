@@ -32,4 +32,3 @@ class Gerente(Usuario):
     @property
     def nivel_acesso(self) -> NivelAcesso:
         return NivelAcesso.GERENTE
-
