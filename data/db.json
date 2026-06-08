@@ -1,0 +1,191 @@
+{
+  "usuarios": [
+    {
+      "id": "usr-001",
+      "nome": "Admin Sistema",
+      "login": "admin",
+      "senha_uid": "uid-admin-001",
+      "tipo": "administrador",
+      "ativo": true,
+      "criado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "usr-002",
+      "nome": "Júlio Coelho",
+      "login": "julio.coelho",
+      "senha_uid": "uid-gerente-002",
+      "tipo": "gerencia",
+      "ativo": true,
+      "criado_em": "2026-01-10T08:00:00"
+    },
+    {
+      "id": "usr-003",
+      "nome": "Maria Vendas",
+      "login": "maria.vendas",
+      "senha_uid": "uid-vendas-003",
+      "tipo": "vendas",
+      "ativo": true,
+      "criado_em": "2026-01-15T08:00:00"
+    },
+    {
+      "id": "usr-004",
+      "nome": "João Estoque",
+      "login": "joao.estoque",
+      "senha_uid": "uid-estoque-004",
+      "tipo": "estoque",
+      "ativo": true,
+      "criado_em": "2026-01-20T08:00:00"
+    }
+  ],
+  "categorias_bebida": [
+    {
+      "id": "cat-001",
+      "nome": "Cerveja",
+      "descricao": "Bebidas fermentadas à base de malte e lúpulo",
+      "alcoolica": true,
+      "criado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "cat-002",
+      "nome": "Refrigerante",
+      "descricao": "Bebidas gaseificadas não alcoólicas",
+      "alcoolica": false,
+      "criado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "cat-003",
+      "nome": "Suco",
+      "descricao": "Sucos naturais e nectares",
+      "alcoolica": false,
+      "criado_em": "2026-01-01T00:00:00"
+    }
+  ],
+  "bebidas": [
+    {
+      "id": "beb-001",
+      "nome": "Skol Lata 350ml",
+      "categoria_id": "cat-001",
+      "marca": "Skol",
+      "volume_ml": 350,
+      "preco_unitario": 3.50,
+      "teor_alcoolico": 4.7,
+      "fornecedor": "AmBev",
+      "ativo": true,
+      "criado_em": "2026-01-01T00:00:00",
+      "atualizado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "beb-002",
+      "nome": "Coca-Cola 2L",
+      "categoria_id": "cat-002",
+      "marca": "Coca-Cola",
+      "volume_ml": 2000,
+      "preco_unitario": 9.90,
+      "teor_alcoolico": null,
+      "fornecedor": "Coca-Cola Brasil",
+      "ativo": true,
+      "criado_em": "2026-01-01T00:00:00",
+      "atualizado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "beb-003",
+      "nome": "Del Valle Laranja 1L",
+      "categoria_id": "cat-003",
+      "marca": "Del Valle",
+      "volume_ml": 1000,
+      "preco_unitario": 6.50,
+      "teor_alcoolico": null,
+      "fornecedor": "Coca-Cola Brasil",
+      "ativo": true,
+      "criado_em": "2026-01-01T00:00:00",
+      "atualizado_em": "2026-01-01T00:00:00"
+    }
+  ],
+  "lotes": [
+    {
+      "id": "lot-001",
+      "bebida_id": "beb-001",
+      "quantidade": 1200,
+      "quantidade_disponivel": 1200,
+      "data_fabricacao": "2026-03-01",
+      "data_validade": "2027-03-01",
+      "codigo_lote": "SKL-2026-001",
+      "criado_em": "2026-03-05T08:00:00"
+    },
+    {
+      "id": "lot-002",
+      "bebida_id": "beb-002",
+      "quantidade": 500,
+      "quantidade_disponivel": 500,
+      "data_fabricacao": "2026-04-01",
+      "data_validade": "2026-10-01",
+      "codigo_lote": "CC-2026-001",
+      "criado_em": "2026-04-05T08:00:00"
+    },
+    {
+      "id": "lot-003",
+      "bebida_id": "beb-003",
+      "quantidade": 800,
+      "quantidade_disponivel": 800,
+      "data_fabricacao": "2026-04-10",
+      "data_validade": "2026-07-10",
+      "codigo_lote": "DV-2026-001",
+      "criado_em": "2026-04-10T08:00:00"
+    }
+  ],
+  "estoque": [
+    {
+      "bebida_id": "beb-001",
+      "quantidade_total": 1200,
+      "quantidade_reservada": 0,
+      "quantidade_disponivel": 1200,
+      "atualizado_em": "2026-04-01T08:00:00"
+    },
+    {
+      "bebida_id": "beb-002",
+      "quantidade_total": 500,
+      "quantidade_reservada": 0,
+      "quantidade_disponivel": 500,
+      "atualizado_em": "2026-04-01T08:00:00"
+    },
+    {
+      "bebida_id": "beb-003",
+      "quantidade_total": 800,
+      "quantidade_reservada": 0,
+      "quantidade_disponivel": 800,
+      "atualizado_em": "2026-04-01T08:00:00"
+    }
+  ],
+  "cupons": [
+    {
+      "id": "cup-001",
+      "codigo": "PROMO10",
+      "descricao": "10% de desconto",
+      "tipo_desconto": "percentual",
+      "valor_desconto": 10.0,
+      "valor_minimo_pedido": 50.0,
+      "usos_maximos": 100,
+      "usos_realizados": 5,
+      "ativo": true,
+      "valido_de": "2026-01-01",
+      "valido_ate": "2026-12-31",
+      "criado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "cup-002",
+      "codigo": "DESC20",
+      "descricao": "R$20 de desconto em pedidos acima de R$100",
+      "tipo_desconto": "fixo",
+      "valor_desconto": 20.0,
+      "valor_minimo_pedido": 100.0,
+      "usos_maximos": 50,
+      "usos_realizados": 2,
+      "ativo": true,
+      "valido_de": "2026-01-01",
+      "valido_ate": "2026-06-30",
+      "criado_em": "2026-01-01T00:00:00"
+    }
+  ],
+  "pedidos": [],
+  "movimentacoes_estoque": []
+}
