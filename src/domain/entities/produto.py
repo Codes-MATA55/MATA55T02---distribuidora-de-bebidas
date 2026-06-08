@@ -63,7 +63,7 @@ class Produto:
 
         self._qtestoque += quantidade
 
-    def remover_estoque(self, quantidade: int):
+    def baixar_estoque(self, quantidade: int):
         if quantidade <= 0:
             raise ValueError("A quantidade a remover deve ser maior que zero")
 

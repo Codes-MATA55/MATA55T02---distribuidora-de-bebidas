@@ -18,4 +18,4 @@ class MovimentacaoEstoque:
         if self.tipo == TipoMovimentacao.ENTRADA:
             self.produto.adicionar_estoque(self.quantidade)
         elif self.tipo == TipoMovimentacao.SAIDA:
-            self.produto.remover_estoque(self.quantidade)
+            self.produto.baixar_estoque(self.quantidade)
