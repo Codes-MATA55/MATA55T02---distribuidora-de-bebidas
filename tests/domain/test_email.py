@@ -1,5 +1,5 @@
 import unittest
-from src.domain.shared.value_objects.email import Email
+from domain.value_objects.email import Email
 
 
 class TestEmail(unittest.TestCase):

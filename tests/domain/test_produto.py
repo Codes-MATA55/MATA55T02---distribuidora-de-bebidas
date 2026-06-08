@@ -1,5 +1,5 @@
 import unittest
-from src.domain.produtos.produto import Produto
+from domain.entities.produto import Produto
 
 
 class TestProduto(unittest.TestCase):

@@ -1,5 +1,5 @@
 import unittest
-from src.domain.shared.value_objects.telefone import Telefone
+from domain.value_objects.telefone import Telefone
 
 
 class TestTelefone(unittest.TestCase):

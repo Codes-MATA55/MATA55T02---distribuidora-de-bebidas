@@ -1,7 +1,7 @@
 import unittest
-from src.domain.produtos.produto import Produto
-from src.domain.estoque.tipo_movimentacao import TipoMovimentacao
-from src.domain.estoque.movimentacao_estoque import MovimentacaoEstoque
+from domain.entities.produto import Produto
+from domain.enums.tipo_movimentacao import TipoMovimentacao
+from domain.entities.movimentacao_estoque import MovimentacaoEstoque
 
 
 class TestEstoque(unittest.TestCase):

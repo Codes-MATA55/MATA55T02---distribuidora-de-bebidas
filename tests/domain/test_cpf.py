@@ -1,5 +1,5 @@
 import unittest
-from src.domain.shared.value_objects.cpf import CPF
+from domain.value_objects.cpf import CPF
 
 
 class TestCPF(unittest.TestCase):

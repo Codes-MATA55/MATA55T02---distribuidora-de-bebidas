@@ -1,6 +1,6 @@
 from datetime import datetime
-from src.domain.produtos.produto import Produto
-from src.domain.estoque.tipo_movimentacao import TipoMovimentacao
+from domain.entities.produto import Produto
+from domain.enums.tipo_movimentacao import TipoMovimentacao
 
 
 class MovimentacaoEstoque:

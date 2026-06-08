@@ -1,5 +1,6 @@
 from datetime import date
-from src.domain.produtos.produto import Produto
+from domain.entities.produto import Produto
+
 
 class Lote:
     def __init__(self, id: int, produto: Produto, quantidade_inicial: int, data_validade: date):
