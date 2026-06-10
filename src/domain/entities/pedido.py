@@ -28,7 +28,7 @@ class Pedido:
         "CANCELADO": {}
     }
 
-    def __init__(self, id, id_cliente, produtos: List[ItemPedido]):
+    def __init__(self, id, id_cliente, produtos: list[ItemPedido]):
         self.id = id 
         self.id_cliente = id_cliente
         self.produtos = produtos
