@@ -1,17 +1,21 @@
 from ast import List
 
-from domain.value_objects import item_produto;
+from domain.value_objects.item_pedido import ItemPedido;
+from domain.value_objects.dinheiro import Dinheiro;
 
 class Pedido:
-    def __init__(self, id, id_cliente, produtos: List[item_produto]):
-        self.id = id
+    def __init__(self, id, id_cliente, produtos: List[ItemPedido]):
+        self.id = id 
         self.id_cliente = id_cliente
         self.produtos = produtos
         self.status = "EM PROCESSAMENTO"
         self.total = self.calcular_total()
 
     def calcular_total(self):
-        return sum(item.calcular_subtotal() for item in self.produtos)
+        valores = [produto.calcular_subtotal().valor for produto in self.produtos]
+        total_centavos = sum(valores)
+        total_str = Dinheiro.converter_centavos_para_string(total_centavos)
+        return Dinheiro(total_str)
     
     def atualizar_status(self, novo_status):
         self.status = novo_status

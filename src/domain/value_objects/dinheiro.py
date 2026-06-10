@@ -8,6 +8,9 @@ class Dinheiro:
     valor_str: str    
 
     def __post_init__(self):
+        if not isinstance(self.valor_str, str):
+            raise ValueError("Valor não está no formato string")      
+          
         dinheiro_str = self.valor_str
 
         if not self._valido(dinheiro_str):
@@ -29,5 +32,14 @@ class Dinheiro:
         if dinheiro_int < 0:
             return False
         return True
+    
+    @staticmethod
+    def converter_centavos_para_string( centavos: int) -> str:
+        reais = centavos // 100
+        centavos_restantes = centavos % 100
+
+        valor_str = (f"{reais:,}".replace(",", ".") + f",{centavos_restantes:02d}")
+
+        return valor_str   
 
         
