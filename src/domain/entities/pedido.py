@@ -4,11 +4,35 @@ from domain.value_objects.item_pedido import ItemPedido;
 from domain.value_objects.dinheiro import Dinheiro;
 
 class Pedido:
+    TRANSICOES_STATUS = {
+        "AGUARDANDO PAGAMENTO": {
+            "EM PROCESSAMENTO",
+            "CANCELADO",
+        },
+        "EM PROCESSAMENTO": {
+            "FINALIZADO",
+            "CANCELADO",
+            "ATRASADO",
+            "EM TRANSPORTE",            
+        },
+        "ATRASADO": {
+            "FINALIZADO",
+            "CANCELADO"
+        },
+        "EM TRANSPORTE": {
+            "FINALIZADO",
+            "CANCELADO",
+            "ATRASADO"
+        },
+        "FINALIZADO": {},
+        "CANCELADO": {}
+    }
+
     def __init__(self, id, id_cliente, produtos: List[ItemPedido]):
         self.id = id 
         self.id_cliente = id_cliente
         self.produtos = produtos
-        self.status = "EM PROCESSAMENTO"
+        self.status = "AGUARDANDO PAGAMENTO"
         self.total = self.calcular_total()
 
     def calcular_total(self):
@@ -18,7 +42,10 @@ class Pedido:
         total_pedido_string = Dinheiro.converter_centavos_para_string(total_pedido_centavos)
         return Dinheiro(total_pedido_string)
     
-    def atualizar_status(self, novo_status):
+    def atualizar_status(self, novo_status: str):
+        status_atual = self.status
+        if novo_status not in self.TRANSICOES_STATUS[status_atual]:
+            raise ValueError(f"Não é permitido mudar de f{status_atual} para f{novo_status}")
         self.status = novo_status
     
     def adicionar_produto(self, item_pedido : ItemPedido):
