@@ -7,20 +7,25 @@ class CNPJ:
     valor: str
 
     def __post_init__(self):
+        padrao = re.compile(r"\d{14}|\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}")        
+        if not padrao.fullmatch(self.valor):
+            raise ValueError("Formato de CNPJ inválido")        
+        
         cnpj = re.sub(r"\D", "", self.valor)
 
         if not self._valido(cnpj):
-            raise ValueError("CNPJ inválido")
+            raise ValueError("Número de CNPJ inválido")
 
         object.__setattr__(self, "valor", cnpj)
 
     @staticmethod
-    def _valido(cnpj: str) -> bool:    
-        if cnpj == cnpj[0] * 14:
-            return False
-        
+    def _valido(cnpj: str) -> bool:
         if len(cnpj) != 14:
             return False
+
+        if cnpj == cnpj[0] * 14:
+            return False   
+                
         
         soma1 = 0
         for i in range(12):
