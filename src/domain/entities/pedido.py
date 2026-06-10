@@ -1,7 +1,7 @@
-from ast import List
+from typing import list
 
-from domain.value_objects.item_pedido import ItemPedido;
-from domain.value_objects.dinheiro import Dinheiro;
+from domain.value_objects.item_pedido import ItemPedido
+from domain.value_objects.dinheiro import Dinheiro
 
 class Pedido:
     TRANSICOES_STATUS = {
@@ -64,8 +64,20 @@ class Pedido:
     def finalizar_pedido(self):
         self.status = "FINALIZADO"
 
+    def obter_total_financeiro_separado(self) -> Dinheiro:
+        if self.status not in ["SEPARADO", "FINALIZADO"]:
+            raise ValueError(
+                f"Não é possível calcular o total separado. "
+                f"O pedido está em estado: {self.status}"
+            )
+            
+        return self.total
 
-    
-
-        
-     
+    def obter_quantidade_fisica_separada(self) -> int:
+        if self.status not in ["SEPARADO", "FINALIZADO"]:
+            raise ValueError(
+                f"Não é possível obter a quantidade separada. "
+                f"O pedido está em estado: {self.status}"
+            )
+            
+        return sum(item.quantidade for item in self.produtos)  
