@@ -12,16 +12,19 @@ class Pedido:
         self.total = self.calcular_total()
 
     def calcular_total(self):
-        valores = [produto.calcular_subtotal().valor for produto in self.produtos]
-        total_centavos = sum(valores)
-        total_str = Dinheiro.converter_centavos_para_string(total_centavos)
-        return Dinheiro(total_str)
+        totais_produtos_dinheiro = [produto.calcular_subtotal() for produto in self.produtos]
+        totais_produtos_centavos = [total.valor for total in totais_produtos_dinheiro]
+        total_pedido_centavos = sum(totais_produtos_centavos)
+        total_pedido_string = Dinheiro.converter_centavos_para_string(total_pedido_centavos)
+        return Dinheiro(total_pedido_string)
     
     def atualizar_status(self, novo_status):
         self.status = novo_status
     
-    def adicionar_produto(self, item_produto):
-        self.produtos.append(item_produto)
+    def adicionar_produto(self, item_pedido : ItemPedido):
+        if not isinstance(item_pedido, ItemPedido):
+            raise ValueError("Item inválido")        
+        self.produtos.append(item_pedido)
         self.total = self.calcular_total()
     
     def remover_produto(self, id_produto):
