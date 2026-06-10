@@ -7,10 +7,13 @@ class CPF:
     valor: str
 
     def __post_init__(self):
+        padrao = re.compile(r"^(?:\d{11}|\d{3}\.\d{3}\.\d{3}-\d{2})$")
+        if not padrao.fullmatch(self.valor):
+            raise ValueError("Formato de CPF inválido")
         cpf = re.sub(r"\D", "", self.valor)
 
         if not self._valido(cpf):
-            raise ValueError("CPF inválido")
+            raise ValueError("Número de CPF inválido")
 
         object.__setattr__(self, "valor", cpf)
 
