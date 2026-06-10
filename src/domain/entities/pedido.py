@@ -2,6 +2,8 @@ from typing import list
 
 from domain.value_objects.item_pedido import ItemPedido
 from domain.value_objects.dinheiro import Dinheiro
+from domain.value_objects.ids import PedidoId, ClienteId
+
 
 class Pedido:
     TRANSICOES_STATUS = {
@@ -28,9 +30,9 @@ class Pedido:
         "CANCELADO": {}
     }
 
-    def __init__(self, id, id_cliente, produtos: List[ItemPedido]):
-        self.id = id 
-        self.id_cliente = id_cliente
+    def __init__(self, produtos: List[ItemPedido], id: PedidoId = None, id_cliente: ClienteId = None):
+        self.id = id or PedidoId()
+        self.id_cliente = id_cliente or ClienteId()
         self.produtos = produtos
         self.status = "AGUARDANDO PAGAMENTO"
         self.total = self.calcular_total()

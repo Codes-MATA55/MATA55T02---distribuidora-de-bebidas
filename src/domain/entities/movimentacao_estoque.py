@@ -1,13 +1,14 @@
 from datetime import datetime
 from domain.entities.produto import Produto
 from domain.enums.tipo_movimentacao import TipoMovimentacao
+from domain.value_objects.ids import MovimentacaoId
 
 
 class MovimentacaoEstoque:
-    def __init__(self, id: int, produto: Produto, tipo: TipoMovimentacao, quantidade: int):
+    def __init__(self, produto: Produto, tipo: TipoMovimentacao, quantidade: int, id: MovimentacaoId = None):
         if quantidade <= 0:
             raise ValueError("Quantidade da movimentação deve ser positiva")
-        self.id = id
+        self.id = id or MovimentacaoId()
         self.produto = produto
         self.tipo = tipo
         self.quantidade = quantidade
