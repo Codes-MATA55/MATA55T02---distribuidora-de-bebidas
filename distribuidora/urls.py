@@ -2,12 +2,14 @@
 Roteamento de URLs — distribuidora
 """
 from django.urls import path
+from django.shortcuts import redirect
 from apps import views
 
 urlpatterns = [
-    # — Docs —
-    path("api/docs/",        views.swagger_ui,   name="swagger-ui"),
-    path("api/openapi.json", views.openapi_spec, name="openapi-spec"),
+    path('', lambda request: redirect('api/docs/')),
+    
+    path('api/docs/', views.swagger_ui, name='swagger-ui'),
+    path('api/openapi.json', views.openapi_spec, name='openapi-spec'),
 
     # — Auth —
     path("api/auth/login/",  views.login,  name="login"),
@@ -30,10 +32,6 @@ urlpatterns = [
     path("api/estoque/lotes/",                    views.estoque_lotes,        name="estoque-lotes"),
     path("api/estoque/lotes/<str:lote_id>/",      views.estoque_lote_detalhe, name="estoque-lote-detalhe"),
 
-    # — Cupons —
-    path("api/cupons/",                 views.cupons,       name="cupons"),
-    path("api/cupons/<str:cupom_id>/",  views.cupom_detalhe, name="cupom-detalhe"),
-
-    # — Vendas —
-    path("api/vendas/", views.vendas, name="vendas"),
+    path('api/pedidos/', views.pedidos, name='pedidos'),
+    path('api/pedidos/<str:pedido_id>/cancelar/', views.pedido_cancelar, name='pedido_cancelar'),
 ]

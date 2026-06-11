@@ -9,12 +9,12 @@ Referência: Evans DDD p.106 — Application Service
 
 from datetime import datetime
 
-from .dominio import (
-    Bebida, CategoriaBebida, Cupom, ItemPedido, Lote,
-    Pedido, TipoDesconto, TipoVenda, UsuarioBase, criar_usuario,
+from apps.dominio import (
+    Bebida, CategoriaBebida, ItemPedido, Lote,
+    Pedido, UsuarioBase, criar_usuario, MotivoPedido, StatusPedido
 )
 from .repositorios import (
-    RepositorioBebida, RepositorioCategoria, RepositorioCupom,
+    RepositorioBebida, RepositorioCategoria,
     RepositorioEstoque, RepositorioPedido, RepositorioUsuario,
 )
 
@@ -167,7 +167,6 @@ class ServicoBebida:
             categoria_id=dados["categoria_id"],
             marca=dados["marca"],
             volume_ml=dados["volume_ml"],
-            preco_unitario=dados["preco_unitario"],
             fornecedor=dados["fornecedor"],
             teor_alcoolico=dados.get("teor_alcoolico"),
         )
@@ -185,7 +184,6 @@ class ServicoBebida:
             nome=dados.get("nome"),
             marca=dados.get("marca"),
             volume_ml=dados.get("volume_ml"),
-            preco_unitario=dados.get("preco_unitario"),
             teor_alcoolico=dados.get("teor_alcoolico"),
             fornecedor=dados.get("fornecedor"),
             categoria_id=dados.get("categoria_id"),
@@ -277,154 +275,106 @@ class ServicoEstoque:
 
 
 # ─────────────────────────────────────────────────────────────
-# CUPONS
+# SERVIÇO DE PEDIDOS / REQUISIÇÕES INTERNAS
 # ─────────────────────────────────────────────────────────────
 
-class ServicoCupom:
-
-    def __init__(self):
-        self._repo = RepositorioCupom()
-
-    def listar(self, solicitante: UsuarioBase) -> list[dict]:
-        self._exigir("cupom:listar", solicitante)
-        return [c.para_dict() for c in self._repo.listar()]
-
-    def criar(self, solicitante: UsuarioBase, dados: dict) -> dict:
-        self._exigir("cupom:criar", solicitante)
-        from datetime import date as dt
-        if self._repo.buscar_por_codigo(dados["codigo"]):
-            raise ValueError(f"Cupom com código '{dados['codigo']}' já existe.")
-        cupom = Cupom(
-            codigo=dados["codigo"],
-            descricao=dados["descricao"],
-            tipo_desconto=TipoDesconto(dados["tipo_desconto"]),
-            valor_desconto=dados["valor_desconto"],
-            valor_minimo_pedido=dados.get("valor_minimo_pedido", 0),
-            usos_maximos=dados.get("usos_maximos", 999),
-            valido_de=dt.fromisoformat(dados["valido_de"]),
-            valido_ate=dt.fromisoformat(dados["valido_ate"]),
-        )
-        self._repo.salvar(cupom)
-        return cupom.para_dict()
-
-    def editar(self, solicitante: UsuarioBase, cupom_id: str, dados: dict) -> dict:
-        self._exigir("cupom:editar", solicitante)
-        from datetime import date as dt
-        cupom = self._repo.buscar_por_id(cupom_id)
-        if not cupom:
-            raise ValueError("Cupom não encontrado.")
-        cupom.atualizar(
-            descricao=dados.get("descricao"),
-            valor_desconto=dados.get("valor_desconto"),
-            valor_minimo_pedido=dados.get("valor_minimo_pedido"),
-            usos_maximos=dados.get("usos_maximos"),
-            valido_ate=dt.fromisoformat(dados["valido_ate"]) if "valido_ate" in dados else None,
-            ativo=dados.get("ativo"),
-        )
-        self._repo.salvar(cupom)
-        return cupom.para_dict()
-
-    def remover(self, solicitante: UsuarioBase, cupom_id: str) -> bool:
-        self._exigir("cupom:remover", solicitante)
-        return self._repo.remover(cupom_id)
-
-    @staticmethod
-    def _exigir(permissao: str, usuario: UsuarioBase):
-        if not usuario.tem_permissao(permissao):
-            raise PermissionError(
-                f"Usuário '{usuario.login}' não tem permissão: {permissao}"
-            )
-
-
-# ─────────────────────────────────────────────────────────────
-# VENDAS
-# ─────────────────────────────────────────────────────────────
-
-class ServicoVenda:
+class ServicoPedido:
     """
-    Orquestra o processo de venda:
-      1. Verifica permissão
-      2. Valida disponibilidade de estoque
-      3. Aplica cupom (se houver)
-      4. Confirma pedido
-      5. Baixa estoque (FEFO)
-      6. Persiste tudo
+    Serviço de Aplicação: Orquestra os casos de uso de movimentação interna.
+    Não possui regras de negócio, apenas coordena o Domínio e os Repositórios.
     """
 
     def __init__(self):
         self._repo_pedido = RepositorioPedido()
-        self._repo_bebida = RepositorioBebida()
         self._repo_estoque = RepositorioEstoque()
-        self._repo_cupom = RepositorioCupom()
+        self._repo_bebida = RepositorioBebida()
 
-    def realizar_venda(self, solicitante: UsuarioBase, dados: dict) -> dict:
-        self._exigir("venda:realizar", solicitante)
+    def _exigir(self, permissao: str, usuario: UsuarioBase):
+        """Verifica se o usuário logado tem direitos para a ação."""
+        if not usuario.tem_permissao(permissao):
+            raise PermissionError(f"Usuário {usuario.login} não tem permissão para: {permissao}")
 
-        tipo_venda = TipoVenda(dados.get("tipo_venda", "individual"))
-        pedido = Pedido(usuario_id=solicitante.id, tipo_venda=tipo_venda)
+    def criar_requisicao(self, solicitante: UsuarioBase, dados: dict) -> dict:
+        """
+        Caso de Uso: Cria um pedido de retirada e dá baixa física nos lotes de estoque.
+        """
 
-        # — Monta itens e valida estoque —
+        self._exigir("pedido:criar", solicitante)
+
+        # 1. Instancia a entidade de Pedido com o novo Enum de Motivo
+        pedido = Pedido(
+            usuario_id=solicitante.id,
+            motivo=MotivoPedido(dados["motivo"])
+        )
+
+        # 2. Constrói os itens validando as regras básicas de OO
         for item_d in dados["itens"]:
             bebida = self._repo_bebida.buscar_por_id(item_d["bebida_id"])
             if not bebida:
-                raise ValueError(f"Bebida '{item_d['bebida_id']}' não encontrada.")
+                raise ValueError(f"Bebida com ID {item_d['bebida_id']} não encontrada.")
 
-            estoque = self._repo_estoque.buscar_estoque_bebida(bebida.id)
-            qtd = item_d["quantidade"]
-            if estoque.quantidade_disponivel < qtd:
-                raise ValueError(
-                    f"Estoque insuficiente para '{bebida.nome}'. "
-                    f"Disponível: {estoque.quantidade_disponivel}, Solicitado: {qtd}"
-                )
-
-            pedido.adicionar_item(ItemPedido(
-                bebida_id=bebida.id,
+            item = ItemPedido(
+                bebida_id=item_d["bebida_id"],
                 nome_bebida=bebida.nome,
-                quantidade=qtd,
-                preco_unitario=bebida.preco.valor,
-            ))
+                quantidade=int(item_d["quantidade"])
+            )
 
-        # — Aplica cupom (opcional) —
-        codigo_cupom = dados.get("cupom_codigo")
-        if codigo_cupom:
-            cupom = self._repo_cupom.buscar_por_codigo(codigo_cupom)
-            if not cupom:
-                raise ValueError(f"Cupom '{codigo_cupom}' não encontrado.")
-            pedido.aplicar_cupom(cupom)
+            pedido.adicionar_item(item)
 
-        # — Confirma e baixa estoque —
+        # 3. Altera o status do pedido e executa a baixa real nos lotes de estoque
         pedido.confirmar()
 
         for item_d in dados["itens"]:
             estoque = self._repo_estoque.buscar_estoque_bebida(item_d["bebida_id"])
+            
+            # O próprio objeto estoque reduz as quantidades respeitando as validades (FEFO)
             estoque.baixar(item_d["quantidade"])
-            # Persiste lotes atualizados
+            
+            # Atualiza os lotes modificados de volta no arquivo JSON
             for lote in self._repo_estoque.listar_lotes(item_d["bebida_id"]):
                 self._repo_estoque.salvar_lote(lote)
+                
             self._repo_estoque.atualizar_estoque_resumo(item_d["bebida_id"], estoque)
+            
+            # Registra no histórico de movimentações o motivo dinâmico da saída
             self._repo_estoque.registrar_movimentacao(
                 bebida_id=item_d["bebida_id"],
                 quantidade=item_d["quantidade"],
-                tipo="saida_venda",
+                tipo=f"saida_{pedido.motivo.value}",
                 pedido_id=pedido.id,
             )
 
-        # — Persiste cupom atualizado (usos) e pedido —
-        if codigo_cupom:
-            cupom_atualizado = self._repo_cupom.buscar_por_codigo(codigo_cupom)
-            if cupom_atualizado:
-                self._repo_cupom.salvar(cupom_atualizado)
-
+        # 4. Salva o documento da requisição finalizado
         self._repo_pedido.salvar(pedido)
         return pedido.para_dict()
 
     def listar(self, solicitante: UsuarioBase) -> list[dict]:
-        self._exigir("venda:listar", solicitante)
-        return self._repo_pedido.listar()
+        self._exigir("pedido:listar", solicitante)
 
-    @staticmethod
-    def _exigir(permissao: str, usuario: UsuarioBase):
-        if not usuario.tem_permissao(permissao):
-            raise PermissionError(
-                f"Usuário '{usuario.login}' não tem permissão: {permissao}"
-            )
+        # Admins e Gerentes visualizam todas as movimentações do sistema
+        if solicitante.tipo.value in ["administrador", "gerencia"]:
+            pedidos = self._repo_pedido.listar()
+            return [p.para_dict() for p in pedidos]
+
+        # Usuários comuns veem apenas suas próprias requisições
+        pedidos = self._repo_pedido.listar(solicitante_id=solicitante.id)
+        return [p.para_dict() for p in pedidos]
+    
+    def cancelar_requisicao(self, solicitante: UsuarioBase, pedido_id: str) -> dict:
+        """
+        Caso de Uso: Cancela uma requisição interna de movimentação.
+        Utiliza as regras da entidade para transicionar o StatusPedido.
+        """
+        self._exigir("pedido:cancelar", solicitante)
+
+        # Busca o pedido no repositório (ajuste o método de busca se necessário)
+        pedido = self._repo_pedido.buscar_por_id(pedido_id)
+        if not pedido:
+            raise ValueError("Pedido não encontrado.")
+
+        # A própria entidade valida o estado interno usando StatusPedido
+        pedido.cancelar()
+
+        # Persiste a alteração do status
+        self._repo_pedido.salvar(pedido)
+        return pedido.para_dict()

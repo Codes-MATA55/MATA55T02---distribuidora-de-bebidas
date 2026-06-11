@@ -24,14 +24,14 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+# DICA: Se der ModuleNotFoundError aqui, altere para: from .servicos import ...
 from apps.servicos import (
     ServicoAutenticacao,
     ServicoBebida,
     ServicoCategoria,
-    ServicoCupom,
     ServicoEstoque,
     ServicoUsuario,
-    ServicoVenda,
+    ServicoPedido,
 )
 
 JWT_SECRET = os.environ.get("JWT_SECRET", "distribuidora-secret-poo-2026")
@@ -157,6 +157,7 @@ def usuarios(request):
         return _erro(str(e), status=403)
     except ValueError as e:
         return _erro(str(e))
+    return _erro("Método não permitido.", status=405)
 
 
 @csrf_exempt
@@ -195,6 +196,7 @@ def categorias(request):
         return _erro(str(e), status=403)
     except ValueError as e:
         return _erro(str(e))
+    return _erro("Método não permitido.", status=405)
 
 
 @csrf_exempt
@@ -232,6 +234,7 @@ def bebidas(request):
         return _erro(str(e), status=403)
     except ValueError as e:
         return _erro(str(e))
+    return _erro("Método não permitido.", status=405)
 
 
 @csrf_exempt
@@ -299,82 +302,53 @@ def estoque_lote_detalhe(request, lote_id):
 
 
 # ─────────────────────────────────────────────────────────────
-# CUPONS
+# PEDIDOS / REQUISIÇÕES INTERNAS
 # ─────────────────────────────────────────────────────────────
 
 @csrf_exempt
 @requer_autenticacao
-def cupons(request):
-    """GET / POST /api/cupons/"""
-    svc = ServicoCupom()
+def pedidos(request):
+    """
+    GET  /api/pedidos/  — Lista as requisições de estoque baseando-se no papel
+    POST /api/pedidos/  — Cria uma nova requisição e processa a baixa física FEFO
+    """
+    svc = ServicoPedido()
     try:
         if request.method == "GET":
             return _sucesso(svc.listar(request.usuario))
+        
         if request.method == "POST":
-            return _sucesso(svc.criar(request.usuario, _body(request)), status=201)
+            dados = _body(request)
+            return _sucesso(svc.criar_requisicao(request.usuario, dados), status=201)
+            
     except PermissionError as e:
         return _erro(str(e), status=403)
     except ValueError as e:
         return _erro(str(e))
-
-
-@csrf_exempt
-@requer_autenticacao
-def cupom_detalhe(request, cupom_id):
-    """PUT / DELETE /api/cupons/<id>/"""
-    svc = ServicoCupom()
-    try:
-        if request.method == "PUT":
-            return _sucesso(svc.editar(request.usuario, cupom_id, _body(request)))
-        if request.method == "DELETE":
-            return _sucesso({"removido": svc.remover(request.usuario, cupom_id)})
-    except PermissionError as e:
-        return _erro(str(e), status=403)
-    except ValueError as e:
-        return _erro(str(e))
+        
     return _erro("Método não permitido.", status=405)
 
-
 # ─────────────────────────────────────────────────────────────
-# VENDAS
+# PEDIDOS / REQUISIÇÕES INTERNAS
 # ─────────────────────────────────────────────────────────────
 
 @csrf_exempt
 @requer_autenticacao
-def vendas(request):
+def pedido_cancelar(request, pedido_id):
     """
-    GET  /api/vendas/  — lista pedidos
-    POST /api/vendas/  — realiza venda
-
-    Body POST (individual):
-    {
-      "tipo_venda": "individual",
-      "itens": [
-        { "bebida_id": "beb-001", "quantidade": 5 }
-      ],
-      "cupom_codigo": "PROMO10"   <- opcional
-    }
-
-    Body POST (lote):
-    {
-      "tipo_venda": "lote",
-      "itens": [
-        { "bebida_id": "beb-001", "quantidade": 1000 },
-        { "bebida_id": "beb-002", "quantidade": 200 }
-      ]
-    }
+    POST /api/pedidos/<id>/cancelar/ — Cancela uma requisição em rascunho
     """
-    svc = ServicoVenda()
+    svc = ServicoPedido()
     try:
-        if request.method == "GET":
-            return _sucesso(svc.listar(request.usuario))
         if request.method == "POST":
-            return _sucesso(svc.realizar_venda(request.usuario, _body(request)), status=201)
+            return _sucesso(svc.cancelar_requisicao(request.usuario, pedido_id))
+            
     except PermissionError as e:
         return _erro(str(e), status=403)
     except ValueError as e:
         return _erro(str(e))
-
+        
+    return _erro("Método não permitido.", status=405)
 
 # ─────────────────────────────────────────────────────────────
 # SWAGGER / OPENAPI
@@ -385,7 +359,7 @@ _OPENAPI_SPEC = {
     "info": {
         "title": "Distribuidora de Bebidas",
         "version": "1.0.0",
-        "description": "API REST para gerenciamento de distribuidora de bebidas em alta escala.",
+        "description": "API REST para gerenciamento logístico de bebidas em alta escala",
     },
     "servers": [{"url": "http://localhost:8000"}],
     "components": {
@@ -422,7 +396,7 @@ _OPENAPI_SPEC = {
                     "nome": {"type": "string", "example": "Maria Silva"},
                     "login": {"type": "string", "example": "maria"},
                     "senha_uid": {"type": "string", "example": "uid-maria-001"},
-                    "tipo": {"type": "string", "enum": ["administrador", "gerencia", "vendas", "estoque"]},
+                    "tipo": {"type": "string", "enum": ["administrador", "gerencia", "requisitante", "estoque"]},
                 },
             },
             "CategoriaInput": {
@@ -436,13 +410,12 @@ _OPENAPI_SPEC = {
             },
             "BebidaInput": {
                 "type": "object",
-                "required": ["nome", "categoria_id", "marca", "volume_ml", "preco_unitario", "fornecedor"],
+                "required": ["nome", "categoria_id", "marca", "volume_ml", "fornecedor"],
                 "properties": {
                     "nome": {"type": "string", "example": "Heineken 600ml"},
                     "categoria_id": {"type": "string", "example": "cat-abc123"},
                     "marca": {"type": "string", "example": "Heineken"},
                     "volume_ml": {"type": "integer", "example": 600},
-                    "preco_unitario": {"type": "number", "example": 8.50},
                     "teor_alcoolico": {"type": "number", "example": 5.0},
                     "fornecedor": {"type": "string", "example": "Distribuidora XYZ"},
                 },
@@ -453,40 +426,16 @@ _OPENAPI_SPEC = {
                 "properties": {
                     "bebida_id": {"type": "string", "example": "beb-abc123"},
                     "quantidade": {"type": "integer", "example": 500},
-                    "data_fabricacao": {"type": "string", "format": "date", "example": "2024-01-01"},
-                    "data_validade": {"type": "string", "format": "date", "example": "2025-01-01"},
-                    "codigo_lote": {"type": "string", "example": "LOT-2024-001"},
+                    "data_fabricacao": {"type": "string", "format": "date", "example": "2026-01-01"},
+                    "data_validade": {"type": "string", "format": "date", "example": "2027-01-01"},
+                    "codigo_lote": {"type": "string", "example": "LOT-2026-001"},
                 },
             },
-            "CupomInput": {
+            "PedidoInput": {
                 "type": "object",
-                "required": ["codigo", "descricao", "tipo_desconto", "valor_desconto", "valido_de", "valido_ate"],
+                "required": ["motivo", "itens"],
                 "properties": {
-                    "codigo": {"type": "string", "example": "PROMO10"},
-                    "descricao": {"type": "string", "example": "10% de desconto"},
-                    "tipo_desconto": {"type": "string", "enum": ["percentual", "fixo"]},
-                    "valor_desconto": {"type": "number", "example": 10.0},
-                    "valor_minimo_pedido": {"type": "number", "example": 50.0},
-                    "usos_maximos": {"type": "integer", "example": 100},
-                    "valido_de": {"type": "string", "format": "date", "example": "2026-01-01"},
-                    "valido_ate": {"type": "string", "format": "date", "example": "2026-12-31"},
-                },
-            },
-            "ItemPedido": {
-                "type": "object",
-                "properties": {
-                    "bebida_id": {"type": "string"},
-                    "nome_bebida": {"type": "string"},
-                    "quantidade": {"type": "integer"},
-                    "preco_unitario": {"type": "number"},
-                    "subtotal": {"type": "number"},
-                },
-            },
-            "VendaInput": {
-                "type": "object",
-                "required": ["tipo_venda", "itens"],
-                "properties": {
-                    "tipo_venda": {"type": "string", "enum": ["individual", "lote"], "example": "individual"},
+                    "motivo": {"type": "string", "enum": ["abastecimento_interno", "transferencia_filial", "avaria_perda", "remanejo"], "example": "abastecimento_interno"},
                     "itens": {
                         "type": "array",
                         "items": {
@@ -498,7 +447,6 @@ _OPENAPI_SPEC = {
                             },
                         },
                     },
-                    "cupom_codigo": {"type": "string", "example": "PROMO10"},
                 },
             },
         },
@@ -509,258 +457,87 @@ _OPENAPI_SPEC = {
             "post": {
                 "tags": ["Auth"],
                 "summary": "Login",
-                "description": "Autentica o usuário e retorna um token JWT.",
                 "security": [],
-                "requestBody": {
-                    "required": True,
-                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/LoginInput"}}},
-                },
-                "responses": {
-                    "200": {"description": "Token JWT gerado com sucesso"},
-                    "401": {"description": "Credenciais inválidas"},
-                },
+                "requestBody": {"required": True, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/LoginInput"}}}},
+                "responses": {"200": {"description": "Token JWT gerado"}, "401": {"description": "Credenciais inválidas"}},
             }
         },
         "/api/auth/perfil/": {
             "get": {
                 "tags": ["Auth"],
                 "summary": "Perfil do usuário logado",
-                "responses": {
-                    "200": {"description": "Dados do usuário autenticado"},
-                    "401": {"description": "Não autenticado"},
-                },
+                "responses": {"200": {"description": "Dados do usuário"}, "401": {"description": "Não autenticado"}},
             }
         },
         "/api/usuarios/": {
-            "get": {
-                "tags": ["Usuários"],
-                "summary": "Listar usuários",
-                "responses": {"200": {"description": "Lista de usuários"}},
-            },
+            "get": {"tags": ["Usuários"], "summary": "Listar usuários", "responses": {"200": {"description": "Lista de usuários"}}},
             "post": {
                 "tags": ["Usuários"],
                 "summary": "Criar usuário",
-                "requestBody": {
-                    "required": True,
-                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/UsuarioInput"}}},
-                },
-                "responses": {
-                    "201": {"description": "Usuário criado"},
-                    "400": {"description": "Dados inválidos ou login já em uso"},
-                    "403": {"description": "Sem permissão"},
-                },
-            },
-        },
-        "/api/usuarios/{usuario_id}/": {
-            "put": {
-                "tags": ["Usuários"],
-                "summary": "Editar usuário",
-                "parameters": [{"name": "usuario_id", "in": "path", "required": True, "schema": {"type": "string"}}],
-                "requestBody": {
-                    "required": True,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "nome": {"type": "string", "example": "Maria Silva"},
-                                    "tipo": {"type": "string", "enum": ["administrador", "gerencia", "vendas", "estoque"]},
-                                    "senha_uid": {"type": "string", "example": "nova-senha-uid"},
-                                },
-                            }
-                        }
-                    },
-                },
-                "responses": {
-                    "200": {"description": "Usuário atualizado"},
-                    "400": {"description": "Dados inválidos"},
-                    "403": {"description": "Sem permissão (apenas Administrador)"},
-                },
-            },
-            "delete": {
-                "tags": ["Usuários"],
-                "summary": "Remover usuário",
-                "parameters": [{"name": "usuario_id", "in": "path", "required": True, "schema": {"type": "string"}}],
-                "responses": {
-                    "200": {"description": "Usuário removido"},
-                    "403": {"description": "Sem permissão"},
-                },
+                "requestBody": {"required": True, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/UsuarioInput"}}}},
+                "responses": {"201": {"description": "Usuário criado"}},
             },
         },
         "/api/categorias/": {
-            "get": {
-                "tags": ["Categorias"],
-                "summary": "Listar categorias",
-                "responses": {"200": {"description": "Lista de categorias"}},
-            },
+            "get": {"tags": ["Categorias"], "summary": "Listar categorias", "responses": {"200": {"description": "Lista de categorias"}}},
             "post": {
                 "tags": ["Categorias"],
                 "summary": "Criar categoria",
-                "requestBody": {
-                    "required": True,
-                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CategoriaInput"}}},
-                },
-                "responses": {"201": {"description": "Categoria criada"}, "403": {"description": "Sem permissão"}},
-            },
-        },
-        "/api/categorias/{categoria_id}/": {
-            "put": {
-                "tags": ["Categorias"],
-                "summary": "Editar categoria",
-                "parameters": [{"name": "categoria_id", "in": "path", "required": True, "schema": {"type": "string"}}],
-                "requestBody": {
-                    "required": True,
-                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CategoriaInput"}}},
-                },
-                "responses": {"200": {"description": "Categoria atualizada"}, "403": {"description": "Sem permissão"}},
-            },
-            "delete": {
-                "tags": ["Categorias"],
-                "summary": "Remover categoria",
-                "parameters": [{"name": "categoria_id", "in": "path", "required": True, "schema": {"type": "string"}}],
-                "responses": {"200": {"description": "Categoria removida"}, "403": {"description": "Sem permissão"}},
+                "requestBody": {"required": True, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CategoriaInput"}}}},
+                "responses": {"201": {"description": "Categoria criada"}},
             },
         },
         "/api/bebidas/": {
-            "get": {
-                "tags": ["Bebidas"],
-                "summary": "Listar bebidas",
-                "responses": {"200": {"description": "Lista de bebidas"}},
-            },
+            "get": {"tags": ["Bebidas"], "summary": "Listar bebidas", "responses": {"200": {"description": "Lista de bebidas"}}},
             "post": {
                 "tags": ["Bebidas"],
                 "summary": "Criar bebida",
-                "requestBody": {
-                    "required": True,
-                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BebidaInput"}}},
-                },
-                "responses": {"201": {"description": "Bebida criada"}, "403": {"description": "Sem permissão"}},
-            },
-        },
-        "/api/bebidas/{bebida_id}/": {
-            "put": {
-                "tags": ["Bebidas"],
-                "summary": "Editar bebida",
-                "parameters": [{"name": "bebida_id", "in": "path", "required": True, "schema": {"type": "string"}}],
-                "requestBody": {
-                    "required": True,
-                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BebidaInput"}}},
-                },
-                "responses": {"200": {"description": "Bebida atualizada"}, "403": {"description": "Sem permissão"}},
-            },
-            "delete": {
-                "tags": ["Bebidas"],
-                "summary": "Remover bebida",
-                "parameters": [{"name": "bebida_id", "in": "path", "required": True, "schema": {"type": "string"}}],
-                "responses": {"200": {"description": "Bebida removida"}, "403": {"description": "Sem permissão"}},
+                "requestBody": {"required": True, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BebidaInput"}}}},
+                "responses": {"201": {"description": "Bebida criada"}},
             },
         },
         "/api/estoque/": {
-            "get": {
-                "tags": ["Estoque"],
-                "summary": "Listar estoque de todas as bebidas",
-                "responses": {"200": {"description": "Lista de estoque por bebida"}},
-            }
+            "get": {"tags": ["Estoque"], "summary": "Listar estoque consolidado", "responses": {"200": {"description": "Estoque de bebidas"}}}
         },
         "/api/estoque/lotes/": {
             "post": {
                 "tags": ["Estoque"],
-                "summary": "Adicionar lote",
-                "requestBody": {
-                    "required": True,
-                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/LoteInput"}}},
-                },
-                "responses": {"201": {"description": "Lote adicionado"}, "403": {"description": "Sem permissão"}},
+                "summary": "Adicionar lote físico",
+                "requestBody": {"required": True, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/LoteInput"}}}},
+                "responses": {"201": {"description": "Lote registrado"}},
             }
         },
-        "/api/estoque/lotes/{lote_id}/": {
-            "put": {
-                "tags": ["Estoque"],
-                "summary": "Editar lote",
-                "parameters": [{"name": "lote_id", "in": "path", "required": True, "schema": {"type": "string"}}],
-                "requestBody": {
-                    "required": True,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "data_fabricacao": {"type": "string", "format": "date", "example": "2024-01-01"},
-                                    "data_validade": {"type": "string", "format": "date", "example": "2025-12-31"},
-                                    "codigo_lote": {"type": "string", "example": "LOT-2024-001-REV"},
-                                },
-                            }
-                        }
-                    },
-                },
-                "responses": {
-                    "200": {"description": "Lote atualizado"},
-                    "400": {"description": "Dados inválidos"},
-                    "403": {"description": "Sem permissão"},
-                },
-            },
-            "delete": {
-                "tags": ["Estoque"],
-                "summary": "Remover lote",
-                "parameters": [{"name": "lote_id", "in": "path", "required": True, "schema": {"type": "string"}}],
-                "responses": {"200": {"description": "Lote removido"}, "403": {"description": "Sem permissão"}},
-            },
-        },
-        "/api/cupons/": {
+        "/api/pedidos/": {
             "get": {
-                "tags": ["Cupons"],
-                "summary": "Listar cupons",
-                "responses": {"200": {"description": "Lista de cupons"}},
+                "tags": ["Pedidos"],
+                "summary": "Listar requisições de estoque",
+                "responses": {"200": {"description": "Lista de movimentações internas"}}
             },
             "post": {
-                "tags": ["Cupons"],
-                "summary": "Criar cupom",
+                "tags": ["Pedidos"],
+                "summary": "Criar requisição de material",
                 "requestBody": {
                     "required": True,
-                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CupomInput"}}},
-                },
-                "responses": {"201": {"description": "Cupom criado"}, "403": {"description": "Sem permissão"}},
-            },
-        },
-        "/api/cupons/{cupom_id}/": {
-            "put": {
-                "tags": ["Cupons"],
-                "summary": "Editar cupom",
-                "parameters": [{"name": "cupom_id", "in": "path", "required": True, "schema": {"type": "string"}}],
-                "requestBody": {
-                    "required": True,
-                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CupomInput"}}},
-                },
-                "responses": {"200": {"description": "Cupom atualizado"}, "403": {"description": "Sem permissão"}},
-            },
-            "delete": {
-                "tags": ["Cupons"],
-                "summary": "Remover cupom",
-                "parameters": [{"name": "cupom_id", "in": "path", "required": True, "schema": {"type": "string"}}],
-                "responses": {"200": {"description": "Cupom removido"}, "403": {"description": "Sem permissão"}},
-            },
-        },
-        "/api/vendas/": {
-            "get": {
-                "tags": ["Vendas"],
-                "summary": "Listar pedidos",
-                "responses": {"200": {"description": "Lista de pedidos"}},
-            },
-            "post": {
-                "tags": ["Vendas"],
-                "summary": "Realizar venda",
-                "requestBody": {
-                    "required": True,
-                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/VendaInput"}}},
+                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PedidoInput"}}}
                 },
                 "responses": {
-                    "201": {"description": "Venda realizada com sucesso"},
-                    "400": {"description": "Estoque insuficiente ou dados inválidos"},
-                    "403": {"description": "Sem permissão"},
-                },
-            },
+                    "201": {"description": "Requisição criada e estoque baixado"},
+                    "400": {"description": "Estoque insuficiente"}
+                }
+            }
         },
-    },
+        "/api/pedidos/{pedido_id}/cancelar/": {
+            "post": {
+                "tags": ["Pedidos"],
+                "summary": "Cancelar requisição",
+                "parameters": [{"name": "pedido_id", "in": "path", "required": True, "schema": {"type": "string"}}],
+                "responses": {
+                    "200": {"description": "Requisição cancelada"},
+                    "400": {"description": "Regras de negócio impedem cancelamento"}
+                }
+            }
+        }
+    }
 }
 
 

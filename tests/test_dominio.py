@@ -15,11 +15,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "distribuidora.settings")
 
 from apps.dominio import (
-    Volume, PrecoUnitario, CodigoCupom,
-    CategoriaBebida, Bebida, Lote, Estoque, Cupom,
-    ItemPedido, Pedido,
-    Administrador, Gerente, Vendedor, Estoquista,
-    TipoDesconto, TipoVenda, StatusPedido, criar_usuario,
+    Volume, CategoriaBebida, Bebida, Lote, Estoque,
+    ItemPedido, Pedido, Administrador, Gerente, Requisitante, Estoquista,
+    MotivoPedido, StatusPedido, criar_usuario,
 )
 from datetime import date, timedelta
 
@@ -41,34 +39,6 @@ class TestVolume:
     def test_str_litros(self):
         assert str(Volume(2000)) == "2.0L"
 
-
-class TestPrecoUnitario:
-    def test_cria_valido(self):
-        p = PrecoUnitario(9.90)
-        assert p.valor == 9.90
-
-    def test_rejeita_negativo(self):
-        with pytest.raises(ValueError):
-            PrecoUnitario(-5)
-
-    def test_desconto_percentual(self):
-        p = PrecoUnitario(100.0)
-        p2 = p.aplicar_desconto_percentual(10)
-        assert p2.valor == 90.0
-
-    def test_desconto_invalido(self):
-        with pytest.raises(ValueError):
-            PrecoUnitario(100).aplicar_desconto_percentual(150)
-
-
-class TestCodigoCupom:
-    def test_normaliza_maiusculo(self):
-        c = CodigoCupom("promo10")
-        assert c.codigo == "PROMO10"
-
-    def test_rejeita_curto(self):
-        with pytest.raises(ValueError):
-            CodigoCupom("AB")
 
 
 # ─── Entidades ───────────────────────────────────────────────
@@ -96,17 +66,11 @@ class TestBebida:
     def test_cria(self):
         b = self._bebida()
         assert b.nome == "Skol Lata"
-        assert b.preco.valor == 3.50
 
     def test_desativar(self):
         b = self._bebida()
         b.desativar()
         assert b.ativo is False
-
-    def test_editar_preco(self):
-        b = self._bebida()
-        b.atualizar(preco_unitario=4.00)
-        assert b.preco.valor == 4.00
 
 
 class TestLoteEstoque:
@@ -149,17 +113,20 @@ class TestUsuarios:
         assert admin.tem_permissao("bebida:criar")
         assert admin.tem_permissao("usuario:remover")
 
-    def test_vendedor_nao_cria_bebida(self):
-        v = Vendedor(nome="Maria", login="maria", senha_uid="uid-002")
-        assert not v.tem_permissao("bebida:criar")
+    def test_requisitante_nao_cria_bebida(self):
+        # Mudou de Vendedor para Requisitante
+        r = Requisitante(nome="Maria", login="maria", senha_uid="uid-002")
+        assert not r.tem_permissao("bebida:criar")
 
-    def test_vendedor_realiza_venda(self):
-        v = Vendedor(nome="Maria", login="maria", senha_uid="uid-002")
-        assert v.tem_permissao("venda:realizar")
+    def test_requisitante_cria_pedido(self):
+        # Mudou para validar o novo fluxo de criar pedidos de movimentação
+        r = Requisitante(nome="Maria", login="maria", senha_uid="uid-002")
+        assert r.tem_permissao("pedido:criar")
 
-    def test_estoquista_nao_vende(self):
+    def test_estoquista_nao_cria_pedido(self):
+        # Garante que o estoquista apenas manuseia o stock, quem pede é o requisitante
         e = Estoquista(nome="João", login="joao", senha_uid="uid-003")
-        assert not e.tem_permissao("venda:realizar")
+        assert not e.tem_permissao("pedido:criar")
 
     def test_gerente_nao_remove_usuario(self):
         g = Gerente(nome="Carlos", login="carlos", senha_uid="uid-004")
@@ -174,105 +141,42 @@ class TestUsuarios:
         assert not admin.verificar_senha("errada")
 
     def test_factory_cria_tipo_correto(self):
-        u = criar_usuario("vendas", nome="X", login="x", senha_uid="y")
-        assert isinstance(u, Vendedor)
+        # Teste da Factory: agora a string mágica "requisitante" deve criar a classe Requisitante
+        u = criar_usuario("requisitante", nome="X", login="x", senha_uid="y")
+        assert isinstance(u, Requisitante)
 
 
-# ─── Cupom ───────────────────────────────────────────────────
-
-class TestCupom:
-    def _cupom_percentual(self):
-        return Cupom(
-            codigo="PROMO10",
-            descricao="10%",
-            tipo_desconto=TipoDesconto.PERCENTUAL,
-            valor_desconto=10.0,
-            valor_minimo_pedido=50.0,
-            usos_maximos=100,
-            valido_de=date.today() - timedelta(1),
-            valido_ate=date.today() + timedelta(30),
-        )
-
-    def test_desconto_percentual(self):
-        c = self._cupom_percentual()
-        assert c.calcular_desconto(100.0) == 10.0
-
-    def test_desconto_fixo(self):
-        c = Cupom(
-            codigo="DESC20",
-            descricao="R$20",
-            tipo_desconto=TipoDesconto.FIXO,
-            valor_desconto=20.0,
-            valor_minimo_pedido=100.0,
-            usos_maximos=10,
-            valido_de=date.today() - timedelta(1),
-            valido_ate=date.today() + timedelta(30),
-        )
-        assert c.calcular_desconto(150.0) == 20.0
-
-    def test_cupom_expirado(self):
-        c = Cupom(
-            codigo="VELHO",
-            descricao="Expirado",
-            tipo_desconto=TipoDesconto.PERCENTUAL,
-            valor_desconto=5.0,
-            valor_minimo_pedido=0,
-            usos_maximos=10,
-            valido_de=date(2020, 1, 1),
-            valido_ate=date(2020, 12, 31),
-        )
-        with pytest.raises(ValueError):
-            c.calcular_desconto(100)
-
-    def test_valor_minimo_nao_atingido(self):
-        c = self._cupom_percentual()
-        with pytest.raises(ValueError):
-            c.calcular_desconto(30.0)
-
-
-# ─── Pedido ──────────────────────────────────────────────────
+# ─── Testes do Pedido de Movimentação ──────────────────────────
 
 class TestPedido:
     def _pedido(self):
-        return Pedido(usuario_id="usr-001", tipo_venda=TipoVenda.INDIVIDUAL)
+        # Cria um pedido usando o novo Enum MotivoPedido
+        return Pedido(usuario_id="usr-001", motivo=MotivoPedido.ABASTECIMENTO)
 
-    def _item(self, qtd=2, preco=10.0):
-        return ItemPedido("beb-001", "Skol Lata", qtd, preco)
+    def _item(self, qtd=2):
+        # Item agora não recebe mais preço unitário
+        return ItemPedido("beb-001", "Skol Lata", qtd)
 
-    def test_valor_bruto(self):
-        p = self._pedido()
-        p.adicionar_item(self._item(3, 5.0))
-        assert p.valor_bruto == 15.0
-
-    def test_confirmar(self):
+    def test_confirmar_pedido_valido(self):
         p = self._pedido()
         p.adicionar_item(self._item())
         p.confirmar()
-        assert p.status == StatusPedido.CONFIRMADO
+        assert p.status == StatusPedido.CONCLUIDO
 
-    def test_confirmar_sem_itens(self):
+    def test_rejeitar_confirmar_sem_itens(self):
+        p = self._pedido()
         with pytest.raises(ValueError):
-            self._pedido().confirmar()
+            p.confirmar()
 
-    def test_cancelar(self):
+    def test_cancelar_pedido_em_rascunho(self):
         p = self._pedido()
         p.adicionar_item(self._item())
         p.cancelar()
         assert p.status == StatusPedido.CANCELADO
 
-    def test_aplicar_cupom(self):
+    def test_proibir_adicionar_item_em_pedido_concluido(self):
         p = self._pedido()
-        p.adicionar_item(self._item(10, 10.0))  # bruto=100
-        cupom = Cupom(
-            codigo="TEST10",
-            descricao="10%",
-            tipo_desconto=TipoDesconto.PERCENTUAL,
-            valor_desconto=10.0,
-            valor_minimo_pedido=0,
-            usos_maximos=99,
-            valido_de=date.today() - timedelta(1),
-            valido_ate=date.today() + timedelta(30),
-        )
-        p.aplicar_cupom(cupom)
-        assert p.desconto_aplicado == 10.0
-        assert p.valor_final == 90.0
+        p.adicionar_item(self._item())
+        p.confirmar()
+        with pytest.raises(ValueError):
+            p.adicionar_item(self._item(1))

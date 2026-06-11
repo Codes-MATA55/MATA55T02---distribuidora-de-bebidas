@@ -36,27 +36,22 @@ class TipoUsuario(str, Enum):
     """Define os papéis disponíveis no sistema."""
     ADMINISTRADOR = "administrador"
     GERENCIA      = "gerencia"
-    VENDAS        = "vendas"
+    REQUISITANTE  = "requisitante"
     ESTOQUE       = "estoque"
 
-
-class TipoDesconto(str, Enum):
-    """Estratégias de desconto aplicáveis a um cupom."""
-    PERCENTUAL = "percentual"
-    FIXO       = "fixo"
-
-
 class StatusPedido(str, Enum):
-    """Máquina de estados do ciclo de vida de um pedido."""
-    ABERTO     = "aberto"
-    CONFIRMADO = "confirmado"
-    CANCELADO  = "cancelado"
+    """Define o ciclo de vida de uma requisição interna."""
+    RASCUNHO  = "rascunho"
+    PENDENTE  = "pendente"    # Aguardando separação/aprovação
+    CONCLUIDO = "concluido"   # Estoque efetivamente baixado
+    CANCELADO = "cancelado"
 
-
-class TipoVenda(str, Enum):
-    """Modalidade de venda — individual ou em lote."""
-    INDIVIDUAL = "individual"
-    LOTE       = "lote"
+class MotivoPedido(str, Enum):
+    """Substitui o tipo de venda por justificativas de saída."""
+    ABASTECIMENTO = "abastecimento_interno"
+    TRANSFERENCIA = "transferencia_filial"
+    AVARIA        = "avaria_perda"
+    REMANEJO      = "remanejo"
 
 
 # ─────────────────────────────────────────────────────────────
@@ -68,8 +63,7 @@ PERMISSOES: dict[TipoUsuario, set[str]] = {
         "bebida:criar", "bebida:editar", "bebida:remover", "bebida:listar",
         "categoria:criar", "categoria:editar", "categoria:remover", "categoria:listar",
         "estoque:adicionar", "estoque:remover", "estoque:listar",
-        "venda:realizar", "venda:listar", "venda:cancelar",
-        "cupom:criar", "cupom:editar", "cupom:remover", "cupom:listar",
+        "pedido:criar", "pedido:listar", "pedido:cancelar",  # <─── Atualizado
         "usuario:criar", "usuario:editar", "usuario:remover", "usuario:listar",
         "relatorio:visualizar",
     },
@@ -77,22 +71,20 @@ PERMISSOES: dict[TipoUsuario, set[str]] = {
         "bebida:criar", "bebida:editar", "bebida:listar",
         "categoria:criar", "categoria:editar", "categoria:listar",
         "estoque:adicionar", "estoque:listar",
-        "venda:realizar", "venda:listar",
-        "cupom:criar", "cupom:editar", "cupom:listar",
+        "pedido:criar", "pedido:listar",                     # <─── Atualizado
         "relatorio:visualizar",
     },
-    TipoUsuario.VENDAS: {
+    TipoUsuario.REQUISITANTE: {
         "bebida:listar",
         "categoria:listar",
         "estoque:listar",
-        "venda:realizar", "venda:listar",
-        "cupom:listar",
+        "pedido:criar", "pedido:listar",                     # <─── Novo papel dele
     },
     TipoUsuario.ESTOQUE: {
         "bebida:listar",
         "categoria:listar",
         "estoque:adicionar", "estoque:remover", "estoque:listar",
-        "venda:listar",
+        "pedido:listar",                                      # <─── Pode auditar saídas
     },
 }
 
@@ -114,38 +106,6 @@ class Volume:
     def __str__(self) -> str:
         return f"{self.ml}ml" if self.ml < 1000 else f"{self.ml / 1000:.1f}L"
 
-
-@dataclass(frozen=True)
-class PrecoUnitario:
-    """Value Object que protege o valor monetário unitário."""
-    valor: float
-
-    def __post_init__(self):
-        if self.valor < 0:
-            raise ValueError(f"Preço não pode ser negativo. Recebido: {self.valor}")
-
-    def aplicar_desconto_percentual(self, percentual: float) -> "PrecoUnitario":
-        if not (0 <= percentual <= 100):
-            raise ValueError("Percentual deve estar entre 0 e 100.")
-        return PrecoUnitario(round(self.valor * (1 - percentual / 100), 2))
-
-    def __str__(self) -> str:
-        return f"R$ {self.valor:.2f}"
-
-
-@dataclass(frozen=True)
-class CodigoCupom:
-    """Value Object para código de cupom — sempre maiúsculo e sem espaços."""
-    codigo: str
-
-    def __post_init__(self):
-        limpo = self.codigo.strip().upper()
-        if len(limpo) < 3:
-            raise ValueError("Código do cupom deve ter ao menos 3 caracteres.")
-        object.__setattr__(self, "codigo", limpo)
-
-    def __str__(self) -> str:
-        return self.codigo
 
 
 # ─────────────────────────────────────────────────────────────
@@ -228,7 +188,7 @@ class Bebida:
     Entidade principal do domínio.
     Representa um produto comercializado pela distribuidora.
 
-    Composição: possui Volume e PrecoUnitario como Value Objects.
+    Composição: possui Volume como Value Objects.
     Associação: referencia CategoriaBebida pelo id.
     """
 
@@ -238,7 +198,6 @@ class Bebida:
         categoria_id: str,
         marca: str,
         volume_ml: int,
-        preco_unitario: float,
         fornecedor: str,
         teor_alcoolico: Optional[float] = None,
         id: Optional[str] = None,
@@ -251,7 +210,6 @@ class Bebida:
         self.__categoria_id = categoria_id
         self.__marca = marca
         self.__volume = Volume(volume_ml)                  # Value Object
-        self.__preco = PrecoUnitario(preco_unitario)       # Value Object
         self.__teor_alcoolico = teor_alcoolico
         self.__fornecedor = fornecedor
         self.__ativo = ativo
@@ -285,10 +243,6 @@ class Bebida:
         return self.__volume
 
     @property
-    def preco(self) -> PrecoUnitario:
-        return self.__preco
-
-    @property
     def teor_alcoolico(self) -> Optional[float]:
         return self.__teor_alcoolico
 
@@ -309,7 +263,6 @@ class Bebida:
         nome: str = None,
         marca: str = None,
         volume_ml: int = None,
-        preco_unitario: float = None,
         teor_alcoolico: float = None,
         fornecedor: str = None,
         categoria_id: str = None,
@@ -320,8 +273,6 @@ class Bebida:
             self.__marca = marca
         if volume_ml is not None:
             self.__volume = Volume(volume_ml)
-        if preco_unitario is not None:
-            self.__preco = PrecoUnitario(preco_unitario)
         if teor_alcoolico is not None:
             self.__teor_alcoolico = teor_alcoolico
         if fornecedor is not None:
@@ -342,7 +293,6 @@ class Bebida:
             "categoria_id": self.__categoria_id,
             "marca": self.__marca,
             "volume_ml": self.__volume.ml,
-            "preco_unitario": self.__preco.valor,
             "teor_alcoolico": self.__teor_alcoolico,
             "fornecedor": self.__fornecedor,
             "ativo": self.__ativo,
@@ -351,8 +301,140 @@ class Bebida:
         }
 
     def __repr__(self) -> str:
-        return f"<Bebida id={self.__id} nome={self.__nome} preco={self.__preco}>"
+        return f"<Bebida id={self.__id} nome={self.__nome} marca={self.__marca}>"
+    
+class Pedido:
+    """Entidade do Domínio: Representa o pedido de movimentação de estoque."""
 
+    def __init__(
+        self,
+        usuario_id: str,
+        motivo: MotivoPedido,
+        id: Optional[str] = None,
+        criado_em: Optional[datetime] = None,
+        status: StatusPedido = StatusPedido.RASCUNHO
+    ):
+        self.__id = id or str(uuid.uuid4())
+        self.__usuario_id = usuario_id  # Quem solicitou
+        # Coerção defensiva: aceita tanto o Enum quanto a string equivalente
+        self.__motivo = motivo if isinstance(motivo, MotivoPedido) else MotivoPedido(motivo)
+        self.__criado_em = criado_em or datetime.now()
+        self.__status = status if isinstance(status, StatusPedido) else StatusPedido(status)
+        self.__itens: list[ItemPedido] = []
+
+    # — Propriedades somente-leitura —
+    @property
+    def id(self) -> str:
+        return self.__id
+
+    @property
+    def usuario_id(self) -> str:
+        return self.__usuario_id
+
+    @property
+    def motivo(self) -> MotivoPedido:
+        return self.__motivo
+
+    @property
+    def criado_em(self) -> datetime:
+        return self.__criado_em
+
+    @property
+    def status(self) -> StatusPedido:
+        return self.__status
+
+    @property
+    def itens(self) -> list[ItemPedido]:
+        return self.__itens.copy()  # Encapsulamento: evita modificação externa direta
+
+    def adicionar_item(self, item: ItemPedido):
+        if self.__status != StatusPedido.RASCUNHO:
+            raise ValueError("Não é possível modificar um pedido que não está em rascunho.")
+        self.__itens.append(item)
+
+    def confirmar(self):
+        """Muda o status para concluído quando o estoque é retirado."""
+        if not self.__itens:
+            raise ValueError("Não é possível concluir um pedido sem itens.")
+        if self.__status != StatusPedido.RASCUNHO:
+            raise ValueError("Apenas pedidos em rascunho podem ser concluídos.")
+        self.__status = StatusPedido.CONCLUIDO
+
+    def cancelar(self):
+        if self.__status == StatusPedido.CONCLUIDO:
+            raise ValueError("Não é possível cancelar um pedido já concluído e retirado.")
+        if self.__status == StatusPedido.CANCELADO:
+            raise ValueError("Pedido já está cancelado.")
+        self.__status = StatusPedido.CANCELADO
+
+    def para_dict(self) -> dict:
+        """"Mapeador para exportação de dados (utilizado nos repositórios)."""
+        return {
+            "id": self.__id,
+            "usuario_id": self.__usuario_id,
+            "motivo": self.__motivo.value,
+            "status": self.__status.value,
+            "criado_em": self.__criado_em.isoformat(),
+            "itens": [item.para_dict() for item in self.__itens],
+        }
+
+    @classmethod
+    def reconstruir(
+        cls,
+        usuario_id: str,
+        motivo: MotivoPedido,
+        id: str,
+        criado_em: datetime,
+        status: StatusPedido,
+        itens: list["ItemPedido"],
+    ) -> "Pedido":
+        """
+        Reconstitui um Pedido a partir de dados já persistidos (ex: vindos do JSON).
+
+        Diferente do fluxo normal (criar pedido vazio + adicionar_item),
+        aqui os itens já existentes são restaurados diretamente, sem passar
+        pelas regras de adicionar_item() — que exigem status RASCUNHO.
+        Isso porque estamos representando um estado já válido no passado,
+        não realizando uma nova operação de negócio.
+        """
+        pedido = cls(
+            usuario_id=usuario_id,
+            motivo=motivo,
+            id=id,
+            criado_em=criado_em,
+            status=status,
+        )
+        pedido.__itens = list(itens)
+        return pedido
+
+    def __repr__(self) -> str:
+        return f"<Pedido id={self.__id} status={self.__status.value} itens={len(self.__itens)}>"
+
+@dataclass(frozen=True)
+class ItemPedido:
+    """
+    Composição de Pedido.
+    Um ItemPedido não existe fora de um Pedido.
+    Referência: Booch p.89 — composição.
+
+    Imutável (frozen): garante que a invariante validada no
+    __post_init__ (quantidade > 0) não pode ser quebrada depois
+    da criação do objeto.
+    """
+    bebida_id: str
+    nome_bebida: str
+    quantidade: int
+
+    def __post_init__(self):
+        if self.quantidade <= 0:
+            raise ValueError("Quantidade do item deve ser positiva.")
+
+    def para_dict(self) -> dict:
+        return {
+            "bebida_id": self.bebida_id,
+            "nome_bebida": self.nome_bebida,
+            "quantidade": self.quantidade,
+        }
 
 class Lote:
     """
@@ -509,242 +591,6 @@ class Estoque:
         }
 
 
-class Cupom:
-    """
-    Entidade que representa um cupom de desconto.
-    Encapsula regras de aplicação e validade.
-    """
-
-    def __init__(
-        self,
-        codigo: str,
-        descricao: str,
-        tipo_desconto: TipoDesconto,
-        valor_desconto: float,
-        valor_minimo_pedido: float,
-        usos_maximos: int,
-        valido_de: date,
-        valido_ate: date,
-        id: Optional[str] = None,
-        usos_realizados: int = 0,
-        ativo: bool = True,
-        criado_em: Optional[datetime] = None,
-    ):
-        self.__id = id or f"cup-{uuid.uuid4().hex[:8]}"
-        self.__codigo = CodigoCupom(codigo)                # Value Object
-        self.__descricao = descricao
-        self.__tipo_desconto = tipo_desconto
-        self.__valor_desconto = valor_desconto
-        self.__valor_minimo_pedido = valor_minimo_pedido
-        self.__usos_maximos = usos_maximos
-        self.__usos_realizados = usos_realizados
-        self.__valido_de = valido_de
-        self.__valido_ate = valido_ate
-        self.__ativo = ativo
-        self.__criado_em = criado_em or datetime.now()
-
-    @property
-    def id(self) -> str:
-        return self.__id
-
-    @property
-    def codigo(self) -> str:
-        return str(self.__codigo)
-
-    @property
-    def ativo(self) -> bool:
-        return self.__ativo
-
-    @property
-    def usos_realizados(self) -> int:
-        return self.__usos_realizados
-
-    def esta_valido(self) -> bool:
-        hoje = date.today()
-        return (
-            self.__ativo
-            and self.__valido_de <= hoje <= self.__valido_ate
-            and self.__usos_realizados < self.__usos_maximos
-        )
-
-    def calcular_desconto(self, valor_total: float) -> float:
-        """Polimorfismo via tipo_desconto — cada estratégia calcula diferente."""
-        if not self.esta_valido():
-            raise ValueError(f"Cupom {self.codigo} inválido ou expirado.")
-        if valor_total < self.__valor_minimo_pedido:
-            raise ValueError(
-                f"Valor mínimo para este cupom é R$ {self.__valor_minimo_pedido:.2f}."
-            )
-        if self.__tipo_desconto == TipoDesconto.PERCENTUAL:
-            return round(valor_total * self.__valor_desconto / 100, 2)
-        return min(self.__valor_desconto, valor_total)
-
-    def registrar_uso(self):
-        if not self.esta_valido():
-            raise ValueError("Cupom não pode ser usado.")
-        self.__usos_realizados += 1
-
-    def desativar(self):
-        self.__ativo = False
-
-    def atualizar(
-        self,
-        descricao: str = None,
-        valor_desconto: float = None,
-        valor_minimo_pedido: float = None,
-        usos_maximos: int = None,
-        valido_ate: date = None,
-        ativo: bool = None,
-    ):
-        if descricao is not None:
-            self.__descricao = descricao
-        if valor_desconto is not None:
-            self.__valor_desconto = valor_desconto
-        if valor_minimo_pedido is not None:
-            self.__valor_minimo_pedido = valor_minimo_pedido
-        if usos_maximos is not None:
-            self.__usos_maximos = usos_maximos
-        if valido_ate is not None:
-            self.__valido_ate = valido_ate
-        if ativo is not None:
-            self.__ativo = ativo
-
-    def para_dict(self) -> dict:
-        return {
-            "id": self.__id,
-            "codigo": str(self.__codigo),
-            "descricao": self.__descricao,
-            "tipo_desconto": self.__tipo_desconto.value,
-            "valor_desconto": self.__valor_desconto,
-            "valor_minimo_pedido": self.__valor_minimo_pedido,
-            "usos_maximos": self.__usos_maximos,
-            "usos_realizados": self.__usos_realizados,
-            "ativo": self.__ativo,
-            "valido_de": self.__valido_de.isoformat(),
-            "valido_ate": self.__valido_ate.isoformat(),
-            "criado_em": self.__criado_em.isoformat(),
-        }
-
-
-@dataclass
-class ItemPedido:
-    """
-    Composição de Pedido.
-    Um ItemPedido não existe fora de um Pedido.
-    Referência: Booch p.89 — composição.
-    """
-    bebida_id: str
-    nome_bebida: str
-    quantidade: int
-    preco_unitario: float
-
-    def __post_init__(self):
-        if self.quantidade <= 0:
-            raise ValueError("Quantidade do item deve ser positiva.")
-        if self.preco_unitario < 0:
-            raise ValueError("Preço unitário não pode ser negativo.")
-
-    @property
-    def subtotal(self) -> float:
-        return round(self.quantidade * self.preco_unitario, 2)
-
-    def para_dict(self) -> dict:
-        return {
-            "bebida_id": self.bebida_id,
-            "nome_bebida": self.nome_bebida,
-            "quantidade": self.quantidade,
-            "preco_unitario": self.preco_unitario,
-            "subtotal": self.subtotal,
-        }
-
-
-class Pedido:
-    """
-    Aggregate Root do contexto de vendas.
-    Gerencia ciclo de vida, itens, cupom e cálculo de valor final.
-    Referência: Evans DDD p.125
-    """
-
-    def __init__(
-        self,
-        usuario_id: str,
-        tipo_venda: TipoVenda,
-        id: Optional[str] = None,
-        criado_em: Optional[datetime] = None,
-    ):
-        self.__id = id or f"ped-{uuid.uuid4().hex[:8]}"
-        self.__usuario_id = usuario_id
-        self.__tipo_venda = tipo_venda
-        self.__itens: list[ItemPedido] = []
-        self.__cupom: Optional[Cupom] = None
-        self.__status = StatusPedido.ABERTO
-        self.__criado_em = criado_em or datetime.now()
-        self.__desconto_aplicado: float = 0.0
-
-    @property
-    def id(self) -> str:
-        return self.__id
-
-    @property
-    def status(self) -> StatusPedido:
-        return self.__status
-
-    @property
-    def valor_bruto(self) -> float:
-        return round(sum(i.subtotal for i in self.__itens), 2)
-
-    @property
-    def desconto_aplicado(self) -> float:
-        return self.__desconto_aplicado
-
-    @property
-    def valor_final(self) -> float:
-        return round(self.valor_bruto - self.__desconto_aplicado, 2)
-
-    def adicionar_item(self, item: ItemPedido):
-        """Composição — o pedido controla seus itens."""
-        if self.__status != StatusPedido.ABERTO:
-            raise ValueError("Não é possível adicionar itens a um pedido fechado.")
-        self.__itens.append(item)
-
-    def aplicar_cupom(self, cupom: Cupom):
-        """Aplica cupom e calcula desconto com todas as validações de negócio."""
-        if self.__status != StatusPedido.ABERTO:
-            raise ValueError("Cupom só pode ser aplicado em pedido aberto.")
-        desconto = cupom.calcular_desconto(self.valor_bruto)
-        self.__cupom = cupom
-        self.__desconto_aplicado = desconto
-
-    def confirmar(self):
-        """Transição de estado — encapsulada no aggregate."""
-        if self.__status != StatusPedido.ABERTO:
-            raise ValueError("Apenas pedidos abertos podem ser confirmados.")
-        if not self.__itens:
-            raise ValueError("Pedido não pode ser confirmado sem itens.")
-        self.__status = StatusPedido.CONFIRMADO
-        if self.__cupom:
-            self.__cupom.registrar_uso()
-
-    def cancelar(self):
-        if self.__status == StatusPedido.CANCELADO:
-            raise ValueError("Pedido já está cancelado.")
-        self.__status = StatusPedido.CANCELADO
-
-    def para_dict(self) -> dict:
-        return {
-            "id": self.__id,
-            "usuario_id": self.__usuario_id,
-            "tipo_venda": self.__tipo_venda.value,
-            "itens": [i.para_dict() for i in self.__itens],
-            "cupom_codigo": str(self.__cupom.codigo) if self.__cupom else None,
-            "valor_bruto": self.valor_bruto,
-            "desconto_aplicado": self.__desconto_aplicado,
-            "valor_final": self.valor_final,
-            "status": self.__status.value,
-            "criado_em": self.__criado_em.isoformat(),
-        }
-
-
 # ─────────────────────────────────────────────────────────────
 # HIERARQUIA DE USUÁRIOS — Herança + Polimorfismo
 # Referência: Booch p.620 | Meyer p.233
@@ -841,12 +687,11 @@ class Gerente(UsuarioBase):
     def __init__(self, **kwargs):
         super().__init__(tipo=TipoUsuario.GERENCIA, **kwargs)
 
-
-class Vendedor(UsuarioBase):
-    """Herança: foco em realizar e consultar vendas."""
+class Requisitante(UsuarioBase):
+    """Herança: foco em realizar pedidos."""
 
     def __init__(self, **kwargs):
-        super().__init__(tipo=TipoUsuario.VENDAS, **kwargs)
+        super().__init__(tipo=TipoUsuario.REQUISITANTE, **kwargs)
 
 
 class Estoquista(UsuarioBase):
@@ -860,7 +705,7 @@ class Estoquista(UsuarioBase):
 FACTORY_USUARIO: dict[TipoUsuario, type] = {
     TipoUsuario.ADMINISTRADOR: Administrador,
     TipoUsuario.GERENCIA: Gerente,
-    TipoUsuario.VENDAS: Vendedor,
+    TipoUsuario.REQUISITANTE: Requisitante,
     TipoUsuario.ESTOQUE: Estoquista,
 }
 

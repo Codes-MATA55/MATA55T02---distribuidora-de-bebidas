@@ -18,9 +18,9 @@ from datetime import date, datetime
 from typing import Optional
 
 from .dominio import (
-    Bebida, CategoriaBebida, Cupom, Estoque, Lote,
-    Pedido, ItemPedido, TipoDesconto, TipoVenda, StatusPedido,
-    UsuarioBase, criar_usuario,
+    Bebida, CategoriaBebida, Estoque, Lote,
+    Pedido, ItemPedido, StatusPedido, MotivoPedido,
+    UsuarioBase, criar_usuario
 )
 
 # Caminho do arquivo JSON (configurável via variável de ambiente)
@@ -186,7 +186,6 @@ class RepositorioBebida:
             categoria_id=d["categoria_id"],
             marca=d["marca"],
             volume_ml=d["volume_ml"],
-            preco_unitario=d["preco_unitario"],
             teor_alcoolico=d.get("teor_alcoolico"),
             fornecedor=d["fornecedor"],
             ativo=d.get("ativo", True),
@@ -308,115 +307,57 @@ class RepositorioEstoque:
         _salvar_db(db)
 
 
-# ─────────────────────────────────────────────────────────────
-# REPOSITÓRIO DE CUPONS
-# ─────────────────────────────────────────────────────────────
-
-class RepositorioCupom:
-
-    @staticmethod
-    def _dict_para_cupom(d: dict) -> Cupom:
-        return Cupom(
-            id=d["id"],
-            codigo=d["codigo"],
-            descricao=d["descricao"],
-            tipo_desconto=TipoDesconto(d["tipo_desconto"]),
-            valor_desconto=d["valor_desconto"],
-            valor_minimo_pedido=d["valor_minimo_pedido"],
-            usos_maximos=d["usos_maximos"],
-            usos_realizados=d.get("usos_realizados", 0),
-            ativo=d.get("ativo", True),
-            valido_de=date.fromisoformat(d["valido_de"]),
-            valido_ate=date.fromisoformat(d["valido_ate"]),
-            criado_em=datetime.fromisoformat(d["criado_em"]),
-        )
-
-    def listar(self, apenas_ativos: bool = False) -> list[Cupom]:
-        db = _ler_db()
-        cupons = [self._dict_para_cupom(c) for c in db["cupons"]]
-        if apenas_ativos:
-            cupons = [c for c in cupons if c.ativo]
-        return cupons
-
-    def buscar_por_codigo(self, codigo: str) -> Optional[Cupom]:
-        db = _ler_db()
-        codigo_upper = codigo.strip().upper()
-        for c in db["cupons"]:
-            if c["codigo"] == codigo_upper:
-                return self._dict_para_cupom(c)
-        return None
-
-    def buscar_por_id(self, id: str) -> Optional[Cupom]:
-        db = _ler_db()
-        for c in db["cupons"]:
-            if c["id"] == id:
-                return self._dict_para_cupom(c)
-        return None
-
-    def salvar(self, cupom: Cupom):
-        db = _ler_db()
-        dados = cupom.para_dict()
-        for c in db["cupons"]:
-            if c["id"] == cupom.id:
-                c.update(dados)
-                _salvar_db(db)
-                return
-        db["cupons"].append(dados)
-        _salvar_db(db)
-
-    def remover(self, id: str) -> bool:
-        cupom = self.buscar_por_id(id)
-        if not cupom:
-            return False
-        cupom.desativar()
-        self.salvar(cupom)
-        return True
-
 
 # ─────────────────────────────────────────────────────────────
 # REPOSITÓRIO DE PEDIDOS
 # ─────────────────────────────────────────────────────────────
 
+
 class RepositorioPedido:
 
     @staticmethod
-    def _dict_para_pedido(d: dict) -> Pedido:
-        pedido = Pedido(
-            id=d["id"],
-            usuario_id=d["usuario_id"],
-            tipo_venda=TipoVenda(d["tipo_venda"]),
-            criado_em=datetime.fromisoformat(d["criado_em"]),
+    def _dict_para_pedido(dados: dict) -> Pedido:
+        itens = [ItemPedido(**item_dict) for item_dict in dados.get("itens", [])]
+        return Pedido.reconstruir(
+            usuario_id=dados["usuario_id"],
+            motivo=MotivoPedido(dados["motivo"]),
+            id=dados["id"],
+            criado_em=datetime.fromisoformat(dados["criado_em"]),
+            status=StatusPedido(dados["status"]),
+            itens=itens,
         )
-        for item_d in d.get("itens", []):
-            pedido.adicionar_item(ItemPedido(
-                bebida_id=item_d["bebida_id"],
-                nome_bebida=item_d["nome_bebida"],
-                quantidade=item_d["quantidade"],
-                preco_unitario=item_d["preco_unitario"],
-            ))
-        return pedido
 
-    def listar(self, usuario_id: str = None) -> list[dict]:
+    def listar(self, usuario_id: str = None) -> list[Pedido]:
+        """Lista todas as requisições (com opção de filtrar por usuário)."""
         db = _ler_db()
         pedidos = db["pedidos"]
         if usuario_id:
             pedidos = [p for p in pedidos if p["usuario_id"] == usuario_id]
-        return pedidos
+        return [self._dict_para_pedido(p) for p in pedidos]
 
-    def buscar_por_id(self, id: str) -> Optional[dict]:
+    def buscar_por_id(self, id: str) -> Optional[Pedido]:
         db = _ler_db()
         for p in db["pedidos"]:
             if p["id"] == id:
-                return p
+                return self._dict_para_pedido(p)
         return None
 
     def salvar(self, pedido: Pedido):
+        """Insere ou atualiza um pedido no banco de dados falso (JSON)."""
         db = _ler_db()
-        dados = pedido.para_dict()
-        for p in db["pedidos"]:
+        
+        # Procura se o pedido já existe para atualizar
+        ind = -1
+        for i, p in enumerate(db["pedidos"]):
             if p["id"] == pedido.id:
-                p.update(dados)
-                _salvar_db(db)
-                return
-        db["pedidos"].append(dados)
+                ind = i
+                break
+
+        pedido_dict = pedido.para_dict()
+
+        if ind >= 0:
+            db["pedidos"][ind] = pedido_dict  # Atualiza
+        else:
+            db["pedidos"].append(pedido_dict) # Cria novo
+
         _salvar_db(db)

@@ -20,10 +20,10 @@
     },
     {
       "id": "usr-003",
-      "nome": "Maria Vendas",
-      "login": "maria.vendas",
-      "senha_uid": "uid-vendas-003",
-      "tipo": "vendas",
+      "nome": "Maria Estoque",
+      "login": "maria.estoque",
+      "senha_uid": "uid-estoque-003",
+      "tipo": "estoque",
       "ativo": true,
       "criado_em": "2026-01-15T08:00:00"
     },
@@ -35,6 +35,15 @@
       "tipo": "estoque",
       "ativo": true,
       "criado_em": "2026-01-20T08:00:00"
+    },
+    {
+      "id": "usr-cdb7c6a5",
+      "nome": "Maria Santos",
+      "login": "maria",
+      "tipo": "requisitante",
+      "ativo": true,
+      "criado_em": "2026-06-11T15:49:36.485183",
+      "senha_uid": "uid-maria-001"
     }
   ],
   "categorias_bebida": [
@@ -58,6 +67,13 @@
       "descricao": "Sucos naturais e nectares",
       "alcoolica": false,
       "criado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "cat-e7141af4",
+      "nome": "Bebida Alcoólica Mista",
+      "descricao": "Bebidas gaseificadas e adocicadas",
+      "alcoolica": true,
+      "criado_em": "2026-06-11T18:50:18.777828"
     }
   ],
   "bebidas": [
@@ -67,7 +83,6 @@
       "categoria_id": "cat-001",
       "marca": "Skol",
       "volume_ml": 350,
-      "preco_unitario": 3.50,
       "teor_alcoolico": 4.7,
       "fornecedor": "AmBev",
       "ativo": true,
@@ -80,7 +95,6 @@
       "categoria_id": "cat-002",
       "marca": "Coca-Cola",
       "volume_ml": 2000,
-      "preco_unitario": 9.90,
       "teor_alcoolico": null,
       "fornecedor": "Coca-Cola Brasil",
       "ativo": true,
@@ -93,12 +107,23 @@
       "categoria_id": "cat-003",
       "marca": "Del Valle",
       "volume_ml": 1000,
-      "preco_unitario": 6.50,
       "teor_alcoolico": null,
       "fornecedor": "Coca-Cola Brasil",
       "ativo": true,
       "criado_em": "2026-01-01T00:00:00",
       "atualizado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "beb-004",
+      "nome": "Heineken 600ml",
+      "categoria_id": "cat-001",
+      "marca": "Heineken",
+      "volume_ml": 600,
+      "teor_alcoolico": 5,
+      "fornecedor": "Distribuidora XYZ",
+      "ativo": true,
+      "criado_em": "2026-06-11T16:05:35.979664",
+      "atualizado_em": "2026-06-11T16:05:35.979667"
     }
   ],
   "lotes": [
@@ -131,6 +156,26 @@
       "data_validade": "2026-07-10",
       "codigo_lote": "DV-2026-001",
       "criado_em": "2026-04-10T08:00:00"
+    },
+    {
+      "id": "lot-004",
+      "bebida_id": "beb-004",
+      "quantidade": 500,
+      "quantidade_disponivel": 500,
+      "data_fabricacao": "2026-04-10",
+      "data_validade": "2026-07-10",
+      "codigo_lote": "DV-2026-001",
+      "criado_em": "2026-04-10T08:00:00"
+    },
+    {
+      "id": "lot-5c44a5cd",
+      "bebida_id": "beb-004",
+      "quantidade": 100,
+      "quantidade_disponivel": 100,
+      "data_fabricacao": "2026-01-01",
+      "data_validade": "2027-01-01",
+      "codigo_lote": "LOT-2026-001",
+      "criado_em": "2026-06-11T18:45:05.818558"
     }
   ],
   "estoque": [
@@ -154,38 +199,62 @@
       "quantidade_reservada": 0,
       "quantidade_disponivel": 800,
       "atualizado_em": "2026-04-01T08:00:00"
-    }
-  ],
-  "cupons": [
-    {
-      "id": "cup-001",
-      "codigo": "PROMO10",
-      "descricao": "10% de desconto",
-      "tipo_desconto": "percentual",
-      "valor_desconto": 10.0,
-      "valor_minimo_pedido": 50.0,
-      "usos_maximos": 100,
-      "usos_realizados": 5,
-      "ativo": true,
-      "valido_de": "2026-01-01",
-      "valido_ate": "2026-12-31",
-      "criado_em": "2026-01-01T00:00:00"
     },
     {
-      "id": "cup-002",
-      "codigo": "DESC20",
-      "descricao": "R$20 de desconto em pedidos acima de R$100",
-      "tipo_desconto": "fixo",
-      "valor_desconto": 20.0,
-      "valor_minimo_pedido": 100.0,
-      "usos_maximos": 50,
-      "usos_realizados": 2,
-      "ativo": true,
-      "valido_de": "2026-01-01",
-      "valido_ate": "2026-06-30",
-      "criado_em": "2026-01-01T00:00:00"
+      "bebida_id": "beb-004",
+      "quantidade_total": 600,
+      "quantidade_reservada": 0,
+      "quantidade_disponivel": 600,
+      "atualizado_em": "2026-06-11T18:45:05.822022"
     }
   ],
-  "pedidos": [],
-  "movimentacoes_estoque": []
+  "pedidos": [
+    {
+      "id": "req-001",
+      "usuario_id": "usr-004",
+      "motivo": "abastecimento_interno",
+      "status": "concluido",
+      "criado_em": "2026-04-01T09:00:00",
+      "itens": [
+        {
+          "bebida_id": "beb-001",
+          "nome_bebida": "Skol Lata",
+          "quantidade": 20
+        }
+      ]
+    },
+    {
+      "id": "85393169-ab6b-45d0-8d9f-a63985928258",
+      "usuario_id": "usr-cdb7c6a5",
+      "motivo": "abastecimento_interno",
+      "status": "cancelado",
+      "criado_em": "2026-06-11T17:25:49.931255",
+      "itens": [
+        {
+          "bebida_id": "beb-004",
+          "nome_bebida": "Heineken 600ml",
+          "quantidade": 10
+        }
+      ]
+    }
+  ],
+  "movimentacoes_estoque": [
+    {},
+    {
+      "id": "mov-20260611172549954333",
+      "bebida_id": "beb-004",
+      "quantidade": 10,
+      "tipo": "saida_abastecimento_interno",
+      "pedido_id": "85393169-ab6b-45d0-8d9f-a63985928258",
+      "criado_em": "2026-06-11T17:25:49.954379"
+    },
+    {
+      "id": "mov-20260611184505823991",
+      "bebida_id": "beb-004",
+      "quantidade": 100,
+      "tipo": "entrada",
+      "pedido_id": null,
+      "criado_em": "2026-06-11T18:45:05.824381"
+    }
+  ]
 }
