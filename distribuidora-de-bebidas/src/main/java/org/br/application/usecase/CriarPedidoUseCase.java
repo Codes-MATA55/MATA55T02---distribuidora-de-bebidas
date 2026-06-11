@@ -1,6 +1,7 @@
 package org.br.application.usecase;
 
 import org.br.application.dto.CriarPedidoDTO;
+import org.br.application.mapper.PedidoMapper;
 import org.br.domain.pedido.ItemPedido;
 import org.br.domain.pedido.Pedido;
 import org.br.domain.pedido.PedidoRepository;
@@ -20,10 +21,11 @@ public class CriarPedidoUseCase {
     }
 
     public Pedido executar(
-            CriarPedidoDTO itens
+            CriarPedidoDTO dto
     ) {
 
-        Pedido pedido = new Pedido((List<ItemPedido>) itens);
+        Pedido pedido =
+                PedidoMapper.toEntity(dto);
 
         repository.salvar(pedido);
 

@@ -12,6 +12,9 @@ public class Pedido {
     private StatusPedido status;
 
     public Pedido(List<ItemPedido> itens) {
+        this.id = UUID.randomUUID();
+        this.itens = itens;
+        this.status = StatusPedido.CRIADO;
     }
 
 
@@ -37,5 +40,16 @@ public class Pedido {
 
     public void setStatus(StatusPedido status) {
         this.status = status;
+    }
+
+    public void expedir() {
+
+        if (status == StatusPedido.EXPEDIDO) {
+            throw new IllegalStateException(
+                    "Pedido já foi expedido"
+            );
+        }
+
+        this.status = StatusPedido.EXPEDIDO;
     }
 }
