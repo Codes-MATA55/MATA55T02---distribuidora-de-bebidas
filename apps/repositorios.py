@@ -249,7 +249,10 @@ class RepositorioEstoque:
 
     def buscar_estoque_bebida(self, bebida_id: str) -> Estoque:
         db = _ler_db()
-        estoque = Estoque(bebida_id)
+        resumo = next((e for e in db["estoque"] if e["bebida_id"] == bebida_id), None)
+        quantidade_reservada = resumo.get("quantidade_reservada", 0) if resumo else 0
+
+        estoque = Estoque(bebida_id, quantidade_reservada=quantidade_reservada)
         for l in db["lotes"]:
             if l["bebida_id"] == bebida_id:
                 estoque.adicionar_lote(self._dict_para_lote(l))

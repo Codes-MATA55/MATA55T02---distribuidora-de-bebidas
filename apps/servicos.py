@@ -282,6 +282,12 @@ class ServicoPedido:
     """
     Serviço de Aplicação: Orquestra os casos de uso de movimentação interna.
     Não possui regras de negócio, apenas coordena o Domínio e os Repositórios.
+
+    Ciclo de vida da requisição:
+        RASCUNHO  -> PENDENTE   (criar_requisicao: RESERVA o estoque, sem baixa física)
+        PENDENTE  -> CONCLUIDO  (aprovar_requisicao: baixa física FEFO + libera a reserva)
+        PENDENTE  -> CANCELADO  (cancelar_requisicao: libera a reserva, sem baixa)
+        RASCUNHO  -> CANCELADO  (cancelar_requisicao: nenhuma reserva a liberar)
     """
 
     def __init__(self):
@@ -296,12 +302,13 @@ class ServicoPedido:
 
     def criar_requisicao(self, solicitante: UsuarioBase, dados: dict) -> dict:
         """
-        Caso de Uso: Cria um pedido de retirada e dá baixa física nos lotes de estoque.
+        Caso de Uso: Cria uma requisição e RESERVA o estoque correspondente
+        (StatusPedido.PENDENTE). Nenhum lote físico é alterado aqui — a baixa
+        real só ocorre quando a requisição é aprovada (aprovar_requisicao).
         """
-
         self._exigir("pedido:criar", solicitante)
 
-        # 1. Instancia a entidade de Pedido com o novo Enum de Motivo
+        # 1. Instancia a entidade de Pedido com o Enum de Motivo
         pedido = Pedido(
             usuario_id=solicitante.id,
             motivo=MotivoPedido(dados["motivo"])
@@ -321,59 +328,110 @@ class ServicoPedido:
 
             pedido.adicionar_item(item)
 
-        # 3. Altera o status do pedido e executa a baixa real nos lotes de estoque
-        pedido.confirmar()
+        # 3. Submete o pedido (RASCUNHO -> PENDENTE); exige que existam itens
+        pedido.submeter()
 
-        for item_d in dados["itens"]:
-            estoque = self._repo_estoque.buscar_estoque_bebida(item_d["bebida_id"])
-            
-            # O próprio objeto estoque reduz as quantidades respeitando as validades (FEFO)
-            estoque.baixar(item_d["quantidade"])
-            
-            # Atualiza os lotes modificados de volta no arquivo JSON
-            for lote in self._repo_estoque.listar_lotes(item_d["bebida_id"]):
+        # 4. Pré-valida disponibilidade de TODOS os itens antes de reservar
+        #    qualquer um — evita reservas parciais se um item no meio da
+        #    lista não tiver estoque suficiente.
+        for item in pedido.itens:
+            estoque = self._repo_estoque.buscar_estoque_bebida(item.bebida_id)
+            if item.quantidade > estoque.quantidade_disponivel:
+                raise ValueError(
+                    f"Estoque insuficiente para '{item.nome_bebida}'. "
+                    f"Disponível: {estoque.quantidade_disponivel}, Solicitado: {item.quantidade}"
+                )
+
+        # 5. Reserva o estoque de cada item (não altera os lotes físicos)
+        for item in pedido.itens:
+            estoque = self._repo_estoque.buscar_estoque_bebida(item.bebida_id)
+            estoque.reservar(item.quantidade)
+            self._repo_estoque.atualizar_estoque_resumo(item.bebida_id, estoque)
+
+        # 6. Salva o documento da requisição (PENDENTE)
+        self._repo_pedido.salvar(pedido)
+        return pedido.para_dict()
+
+    def aprovar_requisicao(self, solicitante: UsuarioBase, pedido_id: str) -> dict:
+        """
+        Caso de Uso: Aprova uma requisição PENDENTE — executa a baixa física
+        nos lotes (FEFO) e libera a reserva correspondente. Transiciona o
+        pedido para CONCLUIDO.
+        """
+        self._exigir("pedido:aprovar", solicitante)
+
+        pedido = self._repo_pedido.buscar_por_id(pedido_id)
+        if not pedido:
+            raise ValueError("Pedido não encontrado.")
+
+        # A própria entidade valida que o pedido está PENDENTE
+        pedido.concluir()
+
+        for item in pedido.itens:
+            estoque = self._repo_estoque.buscar_estoque_bebida(item.bebida_id)
+
+            # Libera a reserva ANTES de baixar: assim, baixar() compara a
+            # quantidade solicitada com a disponibilidade considerando
+            # apenas as OUTRAS reservas pendentes — não a desta requisição,
+            # que está sendo convertida em baixa agora.
+            estoque.liberar_reserva(item.quantidade)
+
+            # Baixa física real, respeitando FEFO (First Expired, First Out)
+            estoque.baixar(item.quantidade)
+
+            # Persiste os lotes mutados (mesmos objetos que baixar() alterou)
+            for lote in estoque.lotes:
                 self._repo_estoque.salvar_lote(lote)
-                
-            self._repo_estoque.atualizar_estoque_resumo(item_d["bebida_id"], estoque)
-            
+
+            self._repo_estoque.atualizar_estoque_resumo(item.bebida_id, estoque)
+
             # Registra no histórico de movimentações o motivo dinâmico da saída
             self._repo_estoque.registrar_movimentacao(
-                bebida_id=item_d["bebida_id"],
-                quantidade=item_d["quantidade"],
+                bebida_id=item.bebida_id,
+                quantidade=item.quantidade,
                 tipo=f"saida_{pedido.motivo.value}",
                 pedido_id=pedido.id,
             )
 
-        # 4. Salva o documento da requisição finalizado
         self._repo_pedido.salvar(pedido)
         return pedido.para_dict()
 
     def listar(self, solicitante: UsuarioBase) -> list[dict]:
+        """Lista as requisições baseando-se no papel do usuário."""
         self._exigir("pedido:listar", solicitante)
 
         # Admins e Gerentes visualizam todas as movimentações do sistema
         if solicitante.tipo.value in ["administrador", "gerencia"]:
             pedidos = self._repo_pedido.listar()
-            return [p.para_dict() for p in pedidos]
+        else:
+            # Funcionários comuns só visualizam as requisições abertas por eles mesmos
+            pedidos = self._repo_pedido.listar(usuario_id=solicitante.id)
 
-        # Usuários comuns veem apenas suas próprias requisições
-        pedidos = self._repo_pedido.listar(solicitante_id=solicitante.id)
         return [p.para_dict() for p in pedidos]
-    
+
     def cancelar_requisicao(self, solicitante: UsuarioBase, pedido_id: str) -> dict:
         """
         Caso de Uso: Cancela uma requisição interna de movimentação.
-        Utiliza as regras da entidade para transicionar o StatusPedido.
+        Se a requisição estava PENDENTE (com estoque reservado), a reserva
+        é liberada — nenhum lote físico é alterado em nenhum dos casos.
         """
         self._exigir("pedido:cancelar", solicitante)
 
-        # Busca o pedido no repositório (ajuste o método de busca se necessário)
+        # Busca o pedido no repositório
         pedido = self._repo_pedido.buscar_por_id(pedido_id)
         if not pedido:
             raise ValueError("Pedido não encontrado.")
 
+        estava_pendente = pedido.status == StatusPedido.PENDENTE
+
         # A própria entidade valida o estado interno usando StatusPedido
         pedido.cancelar()
+
+        if estava_pendente:
+            for item in pedido.itens:
+                estoque = self._repo_estoque.buscar_estoque_bebida(item.bebida_id)
+                estoque.liberar_reserva(item.quantidade)
+                self._repo_estoque.atualizar_estoque_resumo(item.bebida_id, estoque)
 
         # Persiste a alteração do status
         self._repo_pedido.salvar(pedido)

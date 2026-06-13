@@ -63,7 +63,7 @@ PERMISSOES: dict[TipoUsuario, set[str]] = {
         "bebida:criar", "bebida:editar", "bebida:remover", "bebida:listar",
         "categoria:criar", "categoria:editar", "categoria:remover", "categoria:listar",
         "estoque:adicionar", "estoque:remover", "estoque:listar",
-        "pedido:criar", "pedido:listar", "pedido:cancelar",  # <─── Atualizado
+        "pedido:criar", "pedido:listar", "pedido:cancelar", "pedido:aprovar",
         "usuario:criar", "usuario:editar", "usuario:remover", "usuario:listar",
         "relatorio:visualizar",
     },
@@ -71,20 +71,20 @@ PERMISSOES: dict[TipoUsuario, set[str]] = {
         "bebida:criar", "bebida:editar", "bebida:listar",
         "categoria:criar", "categoria:editar", "categoria:listar",
         "estoque:adicionar", "estoque:listar",
-        "pedido:criar", "pedido:listar",                     # <─── Atualizado
+        "pedido:criar", "pedido:listar", "pedido:aprovar",
         "relatorio:visualizar",
     },
     TipoUsuario.REQUISITANTE: {
         "bebida:listar",
         "categoria:listar",
         "estoque:listar",
-        "pedido:criar", "pedido:listar",                     # <─── Novo papel dele
+        "pedido:criar", "pedido:listar",
     },
     TipoUsuario.ESTOQUE: {
         "bebida:listar",
         "categoria:listar",
         "estoque:adicionar", "estoque:remover", "estoque:listar",
-        "pedido:listar",                                      # <─── Pode auditar saídas
+        "pedido:listar", "pedido:aprovar",
     },
 }
 
@@ -352,12 +352,30 @@ class Pedido:
             raise ValueError("Não é possível modificar um pedido que não está em rascunho.")
         self.__itens.append(item)
 
-    def confirmar(self):
-        """Muda o status para concluído quando o estoque é retirado."""
+    def submeter(self):
+        """
+        Transiciona de RASCUNHO para PENDENTE.
+
+        A requisição está completa (tem itens) e passa a aguardar
+        separação/aprovação — é nesse momento que o estoque correspondente
+        deve ser RESERVADO (ver Estoque.reservar), sem baixa física ainda.
+        """
         if not self.__itens:
-            raise ValueError("Não é possível concluir um pedido sem itens.")
+            raise ValueError("Não é possível submeter um pedido sem itens.")
         if self.__status != StatusPedido.RASCUNHO:
-            raise ValueError("Apenas pedidos em rascunho podem ser concluídos.")
+            raise ValueError("Apenas pedidos em rascunho podem ser submetidos.")
+        self.__status = StatusPedido.PENDENTE
+
+    def concluir(self):
+        """
+        Transiciona de PENDENTE para CONCLUIDO.
+
+        Representa que o estoque já foi efetivamente baixado (ver
+        Estoque.baixar / Estoque.liberar_reserva) — a requisição foi
+        separada e atendida.
+        """
+        if self.__status != StatusPedido.PENDENTE:
+            raise ValueError("Apenas pedidos pendentes podem ser concluídos.")
         self.__status = StatusPedido.CONCLUIDO
 
     def cancelar(self):
@@ -557,6 +575,15 @@ class Estoque:
     def quantidade_disponivel(self) -> int:
         return self.quantidade_total - self.__quantidade_reservada
 
+    @property
+    def lotes(self) -> list[Lote]:
+        """
+        Expõe os lotes que compõem este estoque (cópia da lista, mas os
+        objetos Lote em si são os mesmos referenciados internamente —
+        permite que o repositório persista o estado pós-baixar()).
+        """
+        return self.__lotes.copy()
+
     def adicionar_lote(self, lote: Lote):
         if lote.bebida_id != self.__bebida_id:
             raise ValueError("Lote não pertence a esta bebida.")
@@ -580,6 +607,39 @@ class Estoque:
             baixar_agora = min(restante, lote.quantidade_disponivel)
             lote.baixar(baixar_agora)
             restante -= baixar_agora
+
+    def reservar(self, quantidade: int):
+        """
+        Reserva uma quantidade do estoque para um pedido PENDENTE.
+
+        Não altera os lotes físicos — apenas aumenta quantidade_reservada,
+        reduzindo o que resta disponível para novas reservas/baixas.
+        """
+        if quantidade <= 0:
+            raise ValueError("Quantidade a reservar deve ser positiva.")
+        if quantidade > self.quantidade_disponivel:
+            raise ValueError(
+                f"Estoque insuficiente para reserva. Disponível: {self.quantidade_disponivel}, "
+                f"Solicitado: {quantidade}"
+            )
+        self.__quantidade_reservada += quantidade
+
+    def liberar_reserva(self, quantidade: int):
+        """
+        Libera uma reserva previamente feita.
+
+        Usado quando um pedido PENDENTE é concluído (a reserva se converte
+        em baixa física via baixar()) ou cancelado (a reserva é desfeita
+        sem nenhuma baixa).
+        """
+        if quantidade <= 0:
+            raise ValueError("Quantidade a liberar deve ser positiva.")
+        if quantidade > self.__quantidade_reservada:
+            raise ValueError(
+                f"Não é possível liberar {quantidade} unidade(s): "
+                f"apenas {self.__quantidade_reservada} estão reservadas."
+            )
+        self.__quantidade_reservada -= quantidade
 
     def para_dict(self) -> dict:
         return {

@@ -336,7 +336,7 @@ def pedidos(request):
 @requer_autenticacao
 def pedido_cancelar(request, pedido_id):
     """
-    POST /api/pedidos/<id>/cancelar/ — Cancela uma requisição em rascunho
+    POST /api/pedidos/<id>/cancelar/ — Cancela uma requisição em rascunho ou pendente
     """
     svc = ServicoPedido()
     try:
@@ -348,6 +348,26 @@ def pedido_cancelar(request, pedido_id):
     except ValueError as e:
         return _erro(str(e))
         
+    return _erro("Método não permitido.", status=405)
+
+
+@csrf_exempt
+@requer_autenticacao
+def pedido_aprovar(request, pedido_id):
+    """
+    POST /api/pedidos/<id>/aprovar/ — Aprova uma requisição pendente:
+    executa a baixa física (FEFO) e libera a reserva de estoque.
+    """
+    svc = ServicoPedido()
+    try:
+        if request.method == "POST":
+            return _sucesso(svc.aprovar_requisicao(request.usuario, pedido_id))
+
+    except PermissionError as e:
+        return _erro(str(e), status=403)
+    except ValueError as e:
+        return _erro(str(e))
+
     return _erro("Método não permitido.", status=405)
 
 # ─────────────────────────────────────────────────────────────
@@ -515,14 +535,14 @@ _OPENAPI_SPEC = {
             },
             "post": {
                 "tags": ["Pedidos"],
-                "summary": "Criar requisição de material",
+                "summary": "Criar requisição de material (reserva o estoque)",
                 "requestBody": {
                     "required": True,
                     "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PedidoInput"}}}
                 },
                 "responses": {
-                    "201": {"description": "Requisição criada e estoque baixado"},
-                    "400": {"description": "Estoque insuficiente"}
+                    "201": {"description": "Requisição criada e estoque reservado (status: pendente)"},
+                    "400": {"description": "Estoque insuficiente para reserva"}
                 }
             }
         },
@@ -532,8 +552,20 @@ _OPENAPI_SPEC = {
                 "summary": "Cancelar requisição",
                 "parameters": [{"name": "pedido_id", "in": "path", "required": True, "schema": {"type": "string"}}],
                 "responses": {
-                    "200": {"description": "Requisição cancelada"},
+                    "200": {"description": "Requisição cancelada (libera a reserva, se houver)"},
                     "400": {"description": "Regras de negócio impedem cancelamento"}
+                }
+            }
+        },
+        "/api/pedidos/{pedido_id}/aprovar/": {
+            "post": {
+                "tags": ["Pedidos"],
+                "summary": "Aprovar requisição pendente",
+                "description": "Executa a baixa física dos lotes (FEFO) e libera a reserva correspondente. Transiciona a requisição de 'pendente' para 'concluido'.",
+                "parameters": [{"name": "pedido_id", "in": "path", "required": True, "schema": {"type": "string"}}],
+                "responses": {
+                    "200": {"description": "Requisição aprovada e estoque baixado"},
+                    "400": {"description": "Pedido não está pendente, ou estoque insuficiente para baixa"}
                 }
             }
         }

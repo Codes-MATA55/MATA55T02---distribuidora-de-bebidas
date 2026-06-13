@@ -161,7 +161,7 @@
       "id": "lot-004",
       "bebida_id": "beb-004",
       "quantidade": 500,
-      "quantidade_disponivel": 500,
+      "quantidade_disponivel": 275,
       "data_fabricacao": "2026-04-10",
       "data_validade": "2026-07-10",
       "codigo_lote": "DV-2026-001",
@@ -202,10 +202,10 @@
     },
     {
       "bebida_id": "beb-004",
-      "quantidade_total": 600,
+      "quantidade_total": 375,
       "quantidade_reservada": 0,
-      "quantidade_disponivel": 600,
-      "atualizado_em": "2026-06-11T18:45:05.822022"
+      "quantidade_disponivel": 375,
+      "atualizado_em": "2026-06-13T19:59:28.430951"
     }
   ],
   "pedidos": [
@@ -236,6 +236,76 @@
           "quantidade": 10
         }
       ]
+    },
+    {
+      "id": "514c37ac-1c0a-4ae4-869b-12b8204cfe4b",
+      "usuario_id": "usr-001",
+      "motivo": "abastecimento_interno",
+      "status": "concluido",
+      "criado_em": "2026-06-11T19:03:21.049450",
+      "itens": [
+        {
+          "bebida_id": "beb-004",
+          "nome_bebida": "Heineken 600ml",
+          "quantidade": 5
+        }
+      ]
+    },
+    {
+      "id": "863d083b-50b4-4181-af27-15dac1da499c",
+      "usuario_id": "usr-001",
+      "motivo": "abastecimento_interno",
+      "status": "concluido",
+      "criado_em": "2026-06-11T23:16:11.532009",
+      "itens": [
+        {
+          "bebida_id": "beb-004",
+          "nome_bebida": "Heineken 600ml",
+          "quantidade": 10
+        }
+      ]
+    },
+    {
+      "id": "38fbe8eb-b45a-4da7-831c-f70cc6df8aaa",
+      "usuario_id": "usr-001",
+      "motivo": "abastecimento_interno",
+      "status": "concluido",
+      "criado_em": "2026-06-11T23:16:14.606957",
+      "itens": [
+        {
+          "bebida_id": "beb-004",
+          "nome_bebida": "Heineken 600ml",
+          "quantidade": 10
+        }
+      ]
+    },
+    {
+      "id": "8b54d91e-0bbc-4462-a961-f19bf2bf3b86",
+      "usuario_id": "usr-001",
+      "motivo": "abastecimento_interno",
+      "status": "concluido",
+      "criado_em": "2026-06-11T23:17:26.890334",
+      "itens": [
+        {
+          "bebida_id": "beb-004",
+          "nome_bebida": "Heineken 600ml",
+          "quantidade": 5
+        }
+      ]
+    },
+    {
+      "id": "fab3db44-a61e-4190-ad0f-403578b5aeb2",
+      "usuario_id": "usr-cdb7c6a5",
+      "motivo": "abastecimento_interno",
+      "status": "concluido",
+      "criado_em": "2026-06-13T19:57:04.261768",
+      "itens": [
+        {
+          "bebida_id": "beb-004",
+          "nome_bebida": "Heineken 600ml",
+          "quantidade": 200
+        }
+      ]
     }
   ],
   "movimentacoes_estoque": [
@@ -255,6 +325,46 @@
       "tipo": "entrada",
       "pedido_id": null,
       "criado_em": "2026-06-11T18:45:05.824381"
+    },
+    {
+      "id": "mov-20260611190321059073",
+      "bebida_id": "beb-004",
+      "quantidade": 5,
+      "tipo": "saida_abastecimento_interno",
+      "pedido_id": "514c37ac-1c0a-4ae4-869b-12b8204cfe4b",
+      "criado_em": "2026-06-11T19:03:21.059151"
+    },
+    {
+      "id": "mov-20260611231611542933",
+      "bebida_id": "beb-004",
+      "quantidade": 10,
+      "tipo": "saida_abastecimento_interno",
+      "pedido_id": "863d083b-50b4-4181-af27-15dac1da499c",
+      "criado_em": "2026-06-11T23:16:11.543008"
+    },
+    {
+      "id": "mov-20260611231614623005",
+      "bebida_id": "beb-004",
+      "quantidade": 10,
+      "tipo": "saida_abastecimento_interno",
+      "pedido_id": "38fbe8eb-b45a-4da7-831c-f70cc6df8aaa",
+      "criado_em": "2026-06-11T23:16:14.623096"
+    },
+    {
+      "id": "mov-20260611231726919796",
+      "bebida_id": "beb-004",
+      "quantidade": 5,
+      "tipo": "saida_abastecimento_interno",
+      "pedido_id": "8b54d91e-0bbc-4462-a961-f19bf2bf3b86",
+      "criado_em": "2026-06-11T23:17:26.919878"
+    },
+    {
+      "id": "mov-20260613195928433085",
+      "bebida_id": "beb-004",
+      "quantidade": 200,
+      "tipo": "saida_abastecimento_interno",
+      "pedido_id": "fab3db44-a61e-4190-ad0f-403578b5aeb2",
+      "criado_em": "2026-06-13T19:59:28.433133"
     }
   ]
 }
