@@ -370,6 +370,26 @@ def pedido_aprovar(request, pedido_id):
 
     return _erro("Método não permitido.", status=405)
 
+
+@csrf_exempt
+@requer_autenticacao
+def pedido_expedir(request, pedido_id):
+    """
+    POST /api/pedidos/<id>/expedir/ — Registra a saída física das
+    mercadorias do depósito (expedição/despacho). Requer status CONCLUIDO.
+    """
+    svc = ServicoPedido()
+    try:
+        if request.method == "POST":
+            return _sucesso(svc.expedir_requisicao(request.usuario, pedido_id))
+
+    except PermissionError as e:
+        return _erro(str(e), status=403)
+    except ValueError as e:
+        return _erro(str(e))
+
+    return _erro("Método não permitido.", status=405)
+
 # ─────────────────────────────────────────────────────────────
 # SWAGGER / OPENAPI
 # ─────────────────────────────────────────────────────────────
@@ -566,6 +586,19 @@ _OPENAPI_SPEC = {
                 "responses": {
                     "200": {"description": "Requisição aprovada e estoque baixado"},
                     "400": {"description": "Pedido não está pendente, ou estoque insuficiente para baixa"}
+                }
+            }
+        },
+        "/api/pedidos/{pedido_id}/expedir/": {
+            "post": {
+                "tags": ["Pedidos"],
+                "summary": "Expedir requisição concluída",
+                "description": "Registra a saída física das mercadorias do depósito. Só pode ocorrer após aprovação (status 'concluido'). Não altera o estoque — a baixa já foi feita na aprovação.",
+                "parameters": [{"name": "pedido_id", "in": "path", "required": True, "schema": {"type": "string"}}],
+                "responses": {
+                    "200": {"description": "Expedição registrada, pedido agora com status 'expedido'"},
+                    "400": {"description": "Pedido não está concluído"},
+                    "403": {"description": "Sem permissão para expedir"}
                 }
             }
         }

@@ -409,6 +409,44 @@ class ServicoPedido:
 
         return [p.para_dict() for p in pedidos]
 
+    def expedir_requisicao(self, solicitante: UsuarioBase, pedido_id: str) -> dict:
+        """
+        Caso de Uso: Registra a saída física das mercadorias do depósito.
+        Só pode ocorrer após aprovação (status CONCLUIDO). Não altera
+        estoque — a baixa já foi feita em aprovar_requisicao.
+        """
+        self._exigir("pedido:expedir", solicitante)
+
+        pedido = self._repo_pedido.buscar_por_id(pedido_id)
+        if not pedido:
+            raise ValueError("Pedido não encontrado.")
+
+        # A própria entidade valida que o pedido está CONCLUIDO
+        pedido.expedir()
+
+        # Registra a expedição no histórico de movimentações
+        for item in pedido.itens:
+            self._repo_estoque.registrar_movimentacao(
+                bebida_id=item.bebida_id,
+                quantidade=item.quantidade,
+                tipo="expedicao",
+                pedido_id=pedido.id,
+            )
+
+        self._repo_pedido.salvar(pedido)
+        return pedido.para_dict()
+        """Lista as requisições baseando-se no papel do usuário."""
+        self._exigir("pedido:listar", solicitante)
+
+        # Admins e Gerentes visualizam todas as movimentações do sistema
+        if solicitante.tipo.value in ["administrador", "gerencia"]:
+            pedidos = self._repo_pedido.listar()
+        else:
+            # Funcionários comuns só visualizam as requisições abertas por eles mesmos
+            pedidos = self._repo_pedido.listar(usuario_id=solicitante.id)
+
+        return [p.para_dict() for p in pedidos]
+
     def cancelar_requisicao(self, solicitante: UsuarioBase, pedido_id: str) -> dict:
         """
         Caso de Uso: Cancela uma requisição interna de movimentação.
@@ -423,6 +461,12 @@ class ServicoPedido:
             raise ValueError("Pedido não encontrado.")
 
         estava_pendente = pedido.status == StatusPedido.PENDENTE
+
+        # Verifica se quem cancela é o dono do pedido ou tem papel de gestão
+        # (feito ANTES de cancelar() para não mutar o estado em caso de recusa)
+        eh_gestor = solicitante.tipo.value in ["administrador", "gerencia", "estoque"]
+        if not eh_gestor and pedido.usuario_id != solicitante.id:
+            raise PermissionError("Você só pode cancelar suas próprias requisições.")
 
         # A própria entidade valida o estado interno usando StatusPedido
         pedido.cancelar()

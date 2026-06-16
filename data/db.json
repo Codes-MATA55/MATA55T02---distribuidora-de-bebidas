@@ -124,6 +124,18 @@
       "ativo": true,
       "criado_em": "2026-06-11T16:05:35.979664",
       "atualizado_em": "2026-06-11T16:05:35.979667"
+    },
+    {
+      "id": "beb-9287fae6",
+      "nome": "Ice Smirnoff",
+      "categoria_id": "cat-e7141af4",
+      "marca": "Smirnoff",
+      "volume_ml": 275,
+      "teor_alcoolico": 5,
+      "fornecedor": "Distribuidora XYZ",
+      "ativo": true,
+      "criado_em": "2026-06-16T17:52:59.258803",
+      "atualizado_em": "2026-06-16T17:52:59.258809"
     }
   ],
   "lotes": [
@@ -176,6 +188,16 @@
       "data_validade": "2027-01-01",
       "codigo_lote": "LOT-2026-001",
       "criado_em": "2026-06-11T18:45:05.818558"
+    },
+    {
+      "id": "lot-ad97bf3b",
+      "bebida_id": "beb-9287fae6",
+      "quantidade": 100,
+      "quantidade_disponivel": 100,
+      "data_fabricacao": "2026-01-01",
+      "data_validade": "2027-01-01",
+      "codigo_lote": "LOT-2026-001",
+      "criado_em": "2026-06-16T17:53:32.502053"
     }
   ],
   "estoque": [
@@ -206,6 +228,13 @@
       "quantidade_reservada": 0,
       "quantidade_disponivel": 375,
       "atualizado_em": "2026-06-13T19:59:28.430951"
+    },
+    {
+      "bebida_id": "beb-9287fae6",
+      "quantidade_total": 100,
+      "quantidade_reservada": 0,
+      "quantidade_disponivel": 100,
+      "atualizado_em": "2026-06-16T17:53:32.514824"
     }
   ],
   "pedidos": [
@@ -297,7 +326,7 @@
       "id": "fab3db44-a61e-4190-ad0f-403578b5aeb2",
       "usuario_id": "usr-cdb7c6a5",
       "motivo": "abastecimento_interno",
-      "status": "concluido",
+      "status": "expedido",
       "criado_em": "2026-06-13T19:57:04.261768",
       "itens": [
         {
@@ -365,6 +394,22 @@
       "tipo": "saida_abastecimento_interno",
       "pedido_id": "fab3db44-a61e-4190-ad0f-403578b5aeb2",
       "criado_em": "2026-06-13T19:59:28.433133"
+    },
+    {
+      "id": "mov-20260616174258452653",
+      "bebida_id": "beb-004",
+      "quantidade": 200,
+      "tipo": "expedicao",
+      "pedido_id": "fab3db44-a61e-4190-ad0f-403578b5aeb2",
+      "criado_em": "2026-06-16T17:42:58.452695"
+    },
+    {
+      "id": "mov-20260616175332519377",
+      "bebida_id": "beb-9287fae6",
+      "quantidade": 100,
+      "tipo": "entrada",
+      "pedido_id": null,
+      "criado_em": "2026-06-16T17:53:32.519708"
     }
   ]
 }

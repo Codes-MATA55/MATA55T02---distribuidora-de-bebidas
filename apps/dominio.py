@@ -43,7 +43,8 @@ class StatusPedido(str, Enum):
     """Define o ciclo de vida de uma requisição interna."""
     RASCUNHO  = "rascunho"
     PENDENTE  = "pendente"    # Aguardando separação/aprovação
-    CONCLUIDO = "concluido"   # Estoque efetivamente baixado
+    CONCLUIDO = "concluido"   # Estoque efetivamente baixado (aprovado)
+    EXPEDIDO  = "expedido"    # Mercadoria saiu fisicamente do depósito
     CANCELADO = "cancelado"
 
 class MotivoPedido(str, Enum):
@@ -63,7 +64,7 @@ PERMISSOES: dict[TipoUsuario, set[str]] = {
         "bebida:criar", "bebida:editar", "bebida:remover", "bebida:listar",
         "categoria:criar", "categoria:editar", "categoria:remover", "categoria:listar",
         "estoque:adicionar", "estoque:remover", "estoque:listar",
-        "pedido:criar", "pedido:listar", "pedido:cancelar", "pedido:aprovar",
+        "pedido:criar", "pedido:listar", "pedido:cancelar", "pedido:aprovar", "pedido:expedir",
         "usuario:criar", "usuario:editar", "usuario:remover", "usuario:listar",
         "relatorio:visualizar",
     },
@@ -71,20 +72,20 @@ PERMISSOES: dict[TipoUsuario, set[str]] = {
         "bebida:criar", "bebida:editar", "bebida:listar",
         "categoria:criar", "categoria:editar", "categoria:listar",
         "estoque:adicionar", "estoque:listar",
-        "pedido:criar", "pedido:listar", "pedido:aprovar",
+        "pedido:criar", "pedido:listar", "pedido:aprovar", "pedido:expedir",
         "relatorio:visualizar",
     },
     TipoUsuario.REQUISITANTE: {
         "bebida:listar",
         "categoria:listar",
         "estoque:listar",
-        "pedido:criar", "pedido:listar",
+        "pedido:criar", "pedido:listar", "pedido:cancelar",
     },
     TipoUsuario.ESTOQUE: {
         "bebida:listar",
         "categoria:listar",
         "estoque:adicionar", "estoque:remover", "estoque:listar",
-        "pedido:listar", "pedido:aprovar",
+        "pedido:listar", "pedido:aprovar", "pedido:expedir",
     },
 }
 
@@ -378,9 +379,26 @@ class Pedido:
             raise ValueError("Apenas pedidos pendentes podem ser concluídos.")
         self.__status = StatusPedido.CONCLUIDO
 
+    def expedir(self):
+        """
+        Transiciona de CONCLUIDO para EXPEDIDO.
+
+        Registra que as mercadorias saíram fisicamente do depósito
+        (entrega/despacho). Só pode ocorrer após a aprovação (CONCLUIDO),
+        pois o estoque já precisa ter sido baixado antes da expedição.
+        """
+        if self.__status != StatusPedido.CONCLUIDO:
+            raise ValueError(
+                "Apenas pedidos concluídos (estoque já baixado) podem ser expedidos. "
+                f"Status atual: {self.__status.value}"
+            )
+        self.__status = StatusPedido.EXPEDIDO
+
     def cancelar(self):
         if self.__status == StatusPedido.CONCLUIDO:
             raise ValueError("Não é possível cancelar um pedido já concluído e retirado.")
+        if self.__status == StatusPedido.EXPEDIDO:
+            raise ValueError("Não é possível cancelar um pedido já expedido.")
         if self.__status == StatusPedido.CANCELADO:
             raise ValueError("Pedido já está cancelado.")
         self.__status = StatusPedido.CANCELADO
