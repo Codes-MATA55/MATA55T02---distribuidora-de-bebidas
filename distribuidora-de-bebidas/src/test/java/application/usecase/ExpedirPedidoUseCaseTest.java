@@ -1,8 +1,11 @@
 package application.usecase;
 
 import org.br.application.usecase.ExpedirPedidoUseCase;
+import org.br.domain.expedicao.Expedicao;
+import org.br.domain.expedicao.ExpedicaoRepository;
 import org.br.domain.pedido.Pedido;
 import org.br.domain.pedido.PedidoRepository;
+import org.br.domain.pedido.StatusPedido;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +26,9 @@ class ExpedirPedidoUseCaseTest {
     @Mock
     private PedidoRepository pedidoRepository;
 
+    @Mock
+    private ExpedicaoRepository expedicaoRepository;
+
     @InjectMocks
     private ExpedirPedidoUseCase useCase;
 
@@ -37,6 +43,12 @@ class ExpedirPedidoUseCaseTest {
         when(pedidoRepository.buscarPorId(pedidoId))
                 .thenReturn(Optional.of(pedido));
 
+        when(pedido.getStatus())
+                .thenReturn(StatusPedido.EXPEDIDO);
+
+        when(pedido.getId())
+                .thenReturn(pedidoId);
+
         useCase.executar(pedidoId);
 
         verify(pedidoRepository)
@@ -47,6 +59,9 @@ class ExpedirPedidoUseCaseTest {
 
         verify(pedidoRepository)
                 .salvar(pedido);
+
+        verify(expedicaoRepository)
+                .salvar(any(Expedicao.class));
     }
 
     @Test
@@ -60,6 +75,12 @@ class ExpedirPedidoUseCaseTest {
         when(pedidoRepository.buscarPorId(pedidoId))
                 .thenReturn(Optional.of(pedido));
 
+        when(pedido.getStatus())
+                .thenReturn(StatusPedido.EXPEDIDO);
+
+        when(pedido.getId())
+                .thenReturn(pedidoId);
+
         useCase.executar(pedidoId);
 
         verify(pedidoRepository, times(1))
@@ -67,8 +88,8 @@ class ExpedirPedidoUseCaseTest {
     }
 
     @Test
-    @DisplayName("Deve salvar pedido apenas uma vez")
-    void deveSalvarPedidoUmaUnicaVez() {
+    @DisplayName("Deve salvar pedido e expedicao apenas uma vez")
+    void deveSalvarPedidoEExpedicaoUmaUnicaVez() {
 
         UUID pedidoId = UUID.randomUUID();
 
@@ -77,10 +98,19 @@ class ExpedirPedidoUseCaseTest {
         when(pedidoRepository.buscarPorId(pedidoId))
                 .thenReturn(Optional.of(pedido));
 
+        when(pedido.getStatus())
+                .thenReturn(StatusPedido.EXPEDIDO);
+
+        when(pedido.getId())
+                .thenReturn(pedidoId);
+
         useCase.executar(pedidoId);
 
         verify(pedidoRepository, times(1))
                 .salvar(pedido);
+
+        verify(expedicaoRepository, times(1))
+                .salvar(any(Expedicao.class));
     }
 
     @Test
@@ -107,6 +137,9 @@ class ExpedirPedidoUseCaseTest {
                 .buscarPorId(pedidoId);
 
         verify(pedidoRepository, never())
+                .salvar(any());
+
+        verify(expedicaoRepository, never())
                 .salvar(any());
     }
 
@@ -143,6 +176,9 @@ class ExpedirPedidoUseCaseTest {
 
         verify(pedidoRepository, never())
                 .salvar(any());
+
+        verify(expedicaoRepository, never())
+                .salvar(any());
     }
 
     @Test
@@ -170,5 +206,11 @@ class ExpedirPedidoUseCaseTest {
                 "Pedido inválido",
                 exception.getMessage()
         );
+
+        verify(pedidoRepository, never())
+                .salvar(any());
+
+        verify(expedicaoRepository, never())
+                .salvar(any());
     }
 }
