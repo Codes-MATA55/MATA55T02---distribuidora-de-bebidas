@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from domain.entities.produto import Produto
 from domain.enums.tipo_movimentacao import TipoMovimentacao
 from domain.value_objects.ids import MovimentacaoId
@@ -12,8 +13,12 @@ class MovimentacaoEstoque:
         self.produto = produto
         self.tipo = tipo
         self.quantidade = quantidade
-        self.data = datetime.now()
+        self.data_movimentacao = datetime.now()
         self.atualizar_estoque()
+
+    @property
+    def data(self):
+        return self.data_movimentacao
 
     def atualizar_estoque(self):
         if self.tipo == TipoMovimentacao.ENTRADA:

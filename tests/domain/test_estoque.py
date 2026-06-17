@@ -10,9 +10,9 @@ class TestEstoque(unittest.TestCase):
             marca="Coca-Cola",
             nome="Refri Coca",
             descricao="Pet 2L",
-            codbarras="7892000200022",
+            codigo_barras="7892000200022",
             preco=8.00,
-            qtestoque=50,
+            quantidade_estoque=50,
             fornecedor="Coca-Cola BR"
         )
 
@@ -23,7 +23,7 @@ class TestEstoque(unittest.TestCase):
             tipo=TipoMovimentacao.ENTRADA,
             quantidade=20
         )
-        self.assertEqual(self.produto.qtestoque, 70)
+        self.assertEqual(self.produto.quantidade_estoque, 70)
         self.assertEqual(movimentacao.quantidade, 20)
 
     def test_movimentacao_saida_sucesso(self):
@@ -33,7 +33,7 @@ class TestEstoque(unittest.TestCase):
             tipo=TipoMovimentacao.SAIDA,
             quantidade=10
         )
-        self.assertEqual(self.produto.qtestoque, 40)
+        self.assertEqual(self.produto.quantidade_estoque, 40)
 
     def test_movimentacao_saida_estourar_estoque(self):
         with self.assertRaises(ValueError):

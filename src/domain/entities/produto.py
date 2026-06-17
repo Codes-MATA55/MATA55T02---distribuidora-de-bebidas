@@ -4,9 +4,9 @@ class Produto:
         marca: str,
         nome: str,
         descricao: str,
-        codbarras: str,
+        codigo_barras: str,
         preco: float,
-        qtestoque: int,
+        quantidade_estoque: int,
         fornecedor: str
     ):
         if not marca or not marca.strip():
@@ -18,15 +18,15 @@ class Produto:
         if preco < 0:
             raise ValueError("Preço não pode ser negativo")
 
-        if qtestoque < 0:
+        if quantidade_estoque < 0:
             raise ValueError("Quantidade em estoque não pode ser negativa")
 
         self._marca = marca.strip()
         self._nome = nome.strip()
         self._descricao = descricao.strip()
-        self._codbarras = codbarras.strip()
+        self._codigo_barras = codigo_barras.strip()
         self._preco = preco
-        self._qtestoque = qtestoque
+        self._quantidade_estoque = quantidade_estoque
         self._fornecedor = fornecedor
 
     @property
@@ -42,16 +42,24 @@ class Produto:
         return self._descricao
 
     @property
+    def codigo_barras(self):
+        return self._codigo_barras
+
+    @property
     def codbarras(self):
-        return self._codbarras
+        return self.codigo_barras
 
     @property
     def preco(self):
         return self._preco
 
     @property
+    def quantidade_estoque(self):
+        return self._quantidade_estoque
+
+    @property
     def qtestoque(self):
-        return self._qtestoque
+        return self.quantidade_estoque
 
     @property
     def fornecedor(self):
@@ -61,16 +69,19 @@ class Produto:
         if quantidade <= 0:
             raise ValueError("A quantidade a adicionar deve ser maior que zero")
 
-        self._qtestoque += quantidade
+        self._quantidade_estoque += quantidade
 
     def baixar_estoque(self, quantidade: int):
         if quantidade <= 0:
             raise ValueError("A quantidade a remover deve ser maior que zero")
 
-        if quantidade > self._qtestoque:
+        if quantidade > self._quantidade_estoque:
             raise ValueError("Saldo insuficiente em estoque")
 
-        self._qtestoque -= quantidade
+        self._quantidade_estoque -= quantidade
+
+    def remover_estoque(self, quantidade: int):
+        self.baixar_estoque(quantidade)
 
     def alterar_preco(self, novo_preco: float):
         if novo_preco < 0:
