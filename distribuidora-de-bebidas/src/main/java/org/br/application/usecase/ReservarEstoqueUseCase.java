@@ -5,6 +5,7 @@ import org.br.domain.estoque.EstoqueRepository;
 import org.br.domain.pedido.ItemPedido;
 import org.br.domain.pedido.Pedido;
 import org.br.domain.pedido.PedidoRepository;
+import org.br.domain.pedido.StatusPedido;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -33,14 +34,22 @@ public class ReservarEstoqueUseCase {
                         )
                 );
 
+        if (pedido.getStatus() != StatusPedido.CRIADO
+                && pedido.getStatus() != StatusPedido.AGUARDANDO_ESTOQUE) {
+
+            throw new IllegalStateException(
+                    "Pedido já foi reservado ou não pode ser reservado"
+            );
+        }
+
         for (ItemPedido item : pedido.getItens()) {
 
             Estoque estoque = estoqueRepository
-                    .buscarPorProdutoId(item.getProduto().getId())
+                    .buscarPorProdutoId(item.getProdutoId())
                     .orElseThrow(() ->
                             new IllegalArgumentException(
                                     "Estoque não encontrado para o produto "
-                                            + item.getProduto().getId()
+                                            + item.getProdutoId()
                             )
                     );
 
@@ -48,6 +57,8 @@ public class ReservarEstoqueUseCase {
 
             estoqueRepository.salvar(estoque);
         }
+
+        pedido.iniciarSeparacao();
 
         pedidoRepository.salvar(pedido);
     }

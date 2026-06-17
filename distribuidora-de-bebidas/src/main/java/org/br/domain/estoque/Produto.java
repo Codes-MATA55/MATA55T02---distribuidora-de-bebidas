@@ -1,5 +1,6 @@
 package org.br.domain.estoque;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 public class Produto {
@@ -9,6 +10,9 @@ public class Produto {
     private String nome;
 
     private TipoProduto tipo;
+
+    public Produto(UUID uuid, String s, BigDecimal bigDecimal) {
+    }
 
 
     public UUID getId() {

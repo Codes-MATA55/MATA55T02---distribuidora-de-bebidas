@@ -6,26 +6,32 @@ import java.util.UUID;
 
 public class ItemPedido {
 
-    private Produto produto;
+    private final UUID produtoId;
+    private final int quantidade;
 
-    private int quantidade;
+    public ItemPedido(UUID produtoId, int quantidade) {
 
-    public ItemPedido(UUID produtoId, Integer quantidade) {
+        if (produtoId == null) {
+            throw new IllegalArgumentException(
+                    "Produto obrigatório"
+            );
+        }
+
+        if (quantidade <= 0) {
+            throw new IllegalArgumentException(
+                    "Quantidade deve ser maior que zero"
+            );
+        }
+
+        this.produtoId = produtoId;
+        this.quantidade = quantidade;
     }
 
-    public Produto getProduto() {
-        return produto;
-    }
-
-    public void setProduto(Produto produto) {
-        this.produto = produto;
+    public UUID getProdutoId() {
+        return produtoId;
     }
 
     public int getQuantidade() {
         return quantidade;
-    }
-
-    public void setQuantidade(int quantidade) {
-        this.quantidade = quantidade;
     }
 }

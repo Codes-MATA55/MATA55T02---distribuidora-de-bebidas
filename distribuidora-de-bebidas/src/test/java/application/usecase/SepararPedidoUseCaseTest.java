@@ -1,6 +1,6 @@
 package application.usecase;
 
-import org.br.application.usecase.ExpedirPedidoUseCase;
+import org.br.application.usecase.SepararPedidoUseCase;
 import org.br.domain.pedido.Pedido;
 import org.br.domain.pedido.PedidoRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -18,17 +18,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ExpedirPedidoUseCaseTest {
+class SepararPedidoUseCaseTest {
 
     @Mock
     private PedidoRepository pedidoRepository;
 
     @InjectMocks
-    private ExpedirPedidoUseCase useCase;
+    private SepararPedidoUseCase useCase;
 
     @Test
-    @DisplayName("Deve expedir pedido com sucesso")
-    void deveExpedirPedidoComSucesso() {
+    @DisplayName("Deve separar pedido com sucesso")
+    void deveSepararPedidoComSucesso() {
 
         UUID pedidoId = UUID.randomUUID();
 
@@ -43,15 +43,15 @@ class ExpedirPedidoUseCaseTest {
                 .buscarPorId(pedidoId);
 
         verify(pedido)
-                .expedir();
+                .separar();
 
         verify(pedidoRepository)
                 .salvar(pedido);
     }
 
     @Test
-    @DisplayName("Deve buscar pedido apenas uma vez")
-    void deveBuscarPedidoUmaUnicaVez() {
+    @DisplayName("Deve chamar separar apenas uma vez")
+    void deveChamarSepararUmaVez() {
 
         UUID pedidoId = UUID.randomUUID();
 
@@ -62,13 +62,13 @@ class ExpedirPedidoUseCaseTest {
 
         useCase.executar(pedidoId);
 
-        verify(pedidoRepository, times(1))
-                .buscarPorId(pedidoId);
+        verify(pedido, times(1))
+                .separar();
     }
 
     @Test
     @DisplayName("Deve salvar pedido apenas uma vez")
-    void deveSalvarPedidoUmaUnicaVez() {
+    void deveSalvarPedidoUmaVez() {
 
         UUID pedidoId = UUID.randomUUID();
 
@@ -111,8 +111,8 @@ class ExpedirPedidoUseCaseTest {
     }
 
     @Test
-    @DisplayName("Não deve salvar quando expedição falhar")
-    void naoDeveSalvarQuandoExpedicaoFalhar() {
+    @DisplayName("Não deve salvar pedido quando separação falhar")
+    void naoDeveSalvarPedidoQuandoSeparacaoFalhar() {
 
         UUID pedidoId = UUID.randomUUID();
 
@@ -123,9 +123,9 @@ class ExpedirPedidoUseCaseTest {
 
         doThrow(
                 new IllegalStateException(
-                        "Somente pedidos separados podem ser expedidos"
+                        "Pedido deve estar em separação"
                 )
-        ).when(pedido).expedir();
+        ).when(pedido).separar();
 
         IllegalStateException exception =
                 assertThrows(
@@ -134,12 +134,12 @@ class ExpedirPedidoUseCaseTest {
                 );
 
         assertEquals(
-                "Somente pedidos separados podem ser expedidos",
+                "Pedido deve estar em separação",
                 exception.getMessage()
         );
 
         verify(pedido)
-                .expedir();
+                .separar();
 
         verify(pedidoRepository, never())
                 .salvar(any());
@@ -156,9 +156,11 @@ class ExpedirPedidoUseCaseTest {
         when(pedidoRepository.buscarPorId(pedidoId))
                 .thenReturn(Optional.of(pedido));
 
-        doThrow(new IllegalStateException("Pedido inválido"))
-                .when(pedido)
-                .expedir();
+        doThrow(
+                new IllegalStateException(
+                        "Estado inválido para separação"
+                )
+        ).when(pedido).separar();
 
         IllegalStateException exception =
                 assertThrows(
@@ -167,8 +169,11 @@ class ExpedirPedidoUseCaseTest {
                 );
 
         assertEquals(
-                "Pedido inválido",
+                "Estado inválido para separação",
                 exception.getMessage()
         );
+
+        verify(pedidoRepository, never())
+                .salvar(any());
     }
 }
