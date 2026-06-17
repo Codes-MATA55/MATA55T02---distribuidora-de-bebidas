@@ -50,15 +50,14 @@ class Estoque:
         self.__quantidade_reservada = self.__quantidade_reservada.subtrair(qtd)
 
     def cancelar_reserva(self, qtd: Quantidade) -> None:
-        """Cancela a reserva e devolve a quantidade ao disponível."""
-        if self.__quantidade_reservada.valor != qtd.valor:
+        if self.__quantidade_reservada.valor < qtd.valor:
             raise ValueError(
-                f"Reserva com valor incompatível para cancelamento. "
+                f"Reserva insuficiente para cancelamento. "
                 f"Reservado: {self.__quantidade_reservada}, Solicitado: {qtd}"
             )
         self.__quantidade_reservada = self.__quantidade_reservada.subtrair(qtd)
         self.__quantidade_disponivel = self.__quantidade_disponivel.adicionar(qtd)
-
+    
     def repor(self, qtd: Quantidade) -> None:
         self.__quantidade_disponivel = self.__quantidade_disponivel.adicionar(qtd)
 
