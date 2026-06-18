@@ -354,9 +354,9 @@ class ServicoPedido:
 
     def aprovar_requisicao(self, solicitante: UsuarioBase, pedido_id: str) -> dict:
         """
-        Caso de Uso: Aprova uma requisição PENDENTE — executa a baixa física
-        nos lotes (FEFO) e libera a reserva correspondente. Transiciona o
-        pedido para CONCLUIDO.
+        Caso de Uso: Aprova uma requisição PENDENTE, liberando-a para
+        separação física no depósito. Não altera o estoque — a reserva
+        continua ativa; a baixa real ocorre em separar_requisicao().
         """
         self._exigir("pedido:aprovar", solicitante)
 
@@ -364,8 +364,26 @@ class ServicoPedido:
         if not pedido:
             raise ValueError("Pedido não encontrado.")
 
-        # A própria entidade valida que o pedido está PENDENTE
-        pedido.concluir()
+        # A entidade valida que o pedido está PENDENTE
+        pedido.aprovar()
+
+        self._repo_pedido.salvar(pedido)
+        return pedido.para_dict()
+
+    def separar_requisicao(self, solicitante: UsuarioBase, pedido_id: str) -> dict:
+        """
+        Caso de Uso: Registra a separação física dos itens no depósito.
+        É aqui que a baixa real nos lotes (FEFO) ocorre e a reserva é
+        liberada. Transiciona o pedido de APROVADO para SEPARADO.
+        """
+        self._exigir("pedido:separar", solicitante)
+
+        pedido = self._repo_pedido.buscar_por_id(pedido_id)
+        if not pedido:
+            raise ValueError("Pedido não encontrado.")
+
+        # A entidade valida que o pedido está APROVADO
+        pedido.separar()
 
         for item in pedido.itens:
             estoque = self._repo_estoque.buscar_estoque_bebida(item.bebida_id)
@@ -385,11 +403,11 @@ class ServicoPedido:
 
             self._repo_estoque.atualizar_estoque_resumo(item.bebida_id, estoque)
 
-            # Registra no histórico de movimentações o motivo dinâmico da saída
+            # Registra no histórico de movimentações
             self._repo_estoque.registrar_movimentacao(
                 bebida_id=item.bebida_id,
                 quantidade=item.quantidade,
-                tipo=f"saida_{pedido.motivo.value}",
+                tipo=f"separacao_{pedido.motivo.value}",
                 pedido_id=pedido.id,
             )
 
@@ -412,8 +430,8 @@ class ServicoPedido:
     def expedir_requisicao(self, solicitante: UsuarioBase, pedido_id: str) -> dict:
         """
         Caso de Uso: Registra a saída física das mercadorias do depósito.
-        Só pode ocorrer após aprovação (status CONCLUIDO). Não altera
-        estoque — a baixa já foi feita em aprovar_requisicao.
+        Só pode ocorrer após separação (status SEPARADO). Não altera
+        estoque — a baixa já foi feita em separar_requisicao().
         """
         self._exigir("pedido:expedir", solicitante)
 
@@ -421,7 +439,7 @@ class ServicoPedido:
         if not pedido:
             raise ValueError("Pedido não encontrado.")
 
-        # A própria entidade valida que o pedido está CONCLUIDO
+        # A entidade valida que o pedido está SEPARADO
         pedido.expedir()
 
         # Registra a expedição no histórico de movimentações
@@ -435,17 +453,6 @@ class ServicoPedido:
 
         self._repo_pedido.salvar(pedido)
         return pedido.para_dict()
-        """Lista as requisições baseando-se no papel do usuário."""
-        self._exigir("pedido:listar", solicitante)
-
-        # Admins e Gerentes visualizam todas as movimentações do sistema
-        if solicitante.tipo.value in ["administrador", "gerencia"]:
-            pedidos = self._repo_pedido.listar()
-        else:
-            # Funcionários comuns só visualizam as requisições abertas por eles mesmos
-            pedidos = self._repo_pedido.listar(usuario_id=solicitante.id)
-
-        return [p.para_dict() for p in pedidos]
 
     def cancelar_requisicao(self, solicitante: UsuarioBase, pedido_id: str) -> dict:
         """

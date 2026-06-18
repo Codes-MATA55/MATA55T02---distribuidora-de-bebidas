@@ -193,7 +193,7 @@
       "id": "lot-ad97bf3b",
       "bebida_id": "beb-9287fae6",
       "quantidade": 100,
-      "quantidade_disponivel": 100,
+      "quantidade_disponivel": 0,
       "data_fabricacao": "2026-01-01",
       "data_validade": "2027-01-01",
       "codigo_lote": "LOT-2026-001",
@@ -231,10 +231,10 @@
     },
     {
       "bebida_id": "beb-9287fae6",
-      "quantidade_total": 100,
+      "quantidade_total": 0,
       "quantidade_reservada": 0,
-      "quantidade_disponivel": 100,
-      "atualizado_em": "2026-06-16T17:53:32.514824"
+      "quantidade_disponivel": 0,
+      "atualizado_em": "2026-06-18T16:05:00.318339"
     }
   ],
   "pedidos": [
@@ -242,7 +242,7 @@
       "id": "req-001",
       "usuario_id": "usr-004",
       "motivo": "abastecimento_interno",
-      "status": "concluido",
+      "status": "separado",
       "criado_em": "2026-04-01T09:00:00",
       "itens": [
         {
@@ -270,7 +270,7 @@
       "id": "514c37ac-1c0a-4ae4-869b-12b8204cfe4b",
       "usuario_id": "usr-001",
       "motivo": "abastecimento_interno",
-      "status": "concluido",
+      "status": "separado",
       "criado_em": "2026-06-11T19:03:21.049450",
       "itens": [
         {
@@ -284,7 +284,7 @@
       "id": "863d083b-50b4-4181-af27-15dac1da499c",
       "usuario_id": "usr-001",
       "motivo": "abastecimento_interno",
-      "status": "concluido",
+      "status": "separado",
       "criado_em": "2026-06-11T23:16:11.532009",
       "itens": [
         {
@@ -298,7 +298,7 @@
       "id": "38fbe8eb-b45a-4da7-831c-f70cc6df8aaa",
       "usuario_id": "usr-001",
       "motivo": "abastecimento_interno",
-      "status": "concluido",
+      "status": "separado",
       "criado_em": "2026-06-11T23:16:14.606957",
       "itens": [
         {
@@ -312,7 +312,7 @@
       "id": "8b54d91e-0bbc-4462-a961-f19bf2bf3b86",
       "usuario_id": "usr-001",
       "motivo": "abastecimento_interno",
-      "status": "concluido",
+      "status": "expedido",
       "criado_em": "2026-06-11T23:17:26.890334",
       "itens": [
         {
@@ -333,6 +333,20 @@
           "bebida_id": "beb-004",
           "nome_bebida": "Heineken 600ml",
           "quantidade": 200
+        }
+      ]
+    },
+    {
+      "id": "46bbf55e-1420-4c22-a785-ef694d52afa4",
+      "usuario_id": "usr-001",
+      "motivo": "abastecimento_interno",
+      "status": "separado",
+      "criado_em": "2026-06-18T16:03:48.176381",
+      "itens": [
+        {
+          "bebida_id": "beb-9287fae6",
+          "nome_bebida": "Ice Smirnoff",
+          "quantidade": 100
         }
       ]
     }
@@ -410,6 +424,22 @@
       "tipo": "entrada",
       "pedido_id": null,
       "criado_em": "2026-06-16T17:53:32.519708"
+    },
+    {
+      "id": "mov-20260618160245174835",
+      "bebida_id": "beb-004",
+      "quantidade": 5,
+      "tipo": "expedicao",
+      "pedido_id": "8b54d91e-0bbc-4462-a961-f19bf2bf3b86",
+      "criado_em": "2026-06-18T16:02:45.174903"
+    },
+    {
+      "id": "mov-20260618160500335169",
+      "bebida_id": "beb-9287fae6",
+      "quantidade": 100,
+      "tipo": "separacao_abastecimento_interno",
+      "pedido_id": "46bbf55e-1420-4c22-a785-ef694d52afa4",
+      "criado_em": "2026-06-18T16:05:00.335244"
     }
   ]
 }

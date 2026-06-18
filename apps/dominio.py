@@ -40,11 +40,20 @@ class TipoUsuario(str, Enum):
     ESTOQUE       = "estoque"
 
 class StatusPedido(str, Enum):
-    """Define o ciclo de vida de uma requisição interna."""
+    """
+    Define o ciclo de vida de uma requisição interna.
+
+    RASCUNHO  → PENDENTE  : submeter()  — requisição submetida, estoque reservado
+    PENDENTE  → APROVADO  : aprovar()   — liberada para separação física
+    APROVADO  → SEPARADO  : separar()   — baixa física FEFO executada, reserva liberada
+    SEPARADO  → EXPEDIDO  : expedir()   — mercadoria saiu fisicamente do depósito
+    PENDENTE/APROVADO → CANCELADO : cancelar() — reserva liberada se havia reserva
+    """
     RASCUNHO  = "rascunho"
-    PENDENTE  = "pendente"    # Aguardando separação/aprovação
-    CONCLUIDO = "concluido"   # Estoque efetivamente baixado (aprovado)
-    EXPEDIDO  = "expedido"    # Mercadoria saiu fisicamente do depósito
+    PENDENTE  = "pendente"   # Estoque reservado, aguardando aprovação
+    APROVADO  = "aprovado"   # Liberado para separação física no depósito
+    SEPARADO  = "separado"   # Estoque baixado fisicamente (FEFO), pronto p/ expedir
+    EXPEDIDO  = "expedido"   # Mercadoria saiu do depósito
     CANCELADO = "cancelado"
 
 class MotivoPedido(str, Enum):
@@ -64,7 +73,8 @@ PERMISSOES: dict[TipoUsuario, set[str]] = {
         "bebida:criar", "bebida:editar", "bebida:remover", "bebida:listar",
         "categoria:criar", "categoria:editar", "categoria:remover", "categoria:listar",
         "estoque:adicionar", "estoque:remover", "estoque:listar",
-        "pedido:criar", "pedido:listar", "pedido:cancelar", "pedido:aprovar", "pedido:expedir",
+        "pedido:criar", "pedido:listar", "pedido:cancelar",
+        "pedido:aprovar", "pedido:separar", "pedido:expedir",
         "usuario:criar", "usuario:editar", "usuario:remover", "usuario:listar",
         "relatorio:visualizar",
     },
@@ -72,7 +82,8 @@ PERMISSOES: dict[TipoUsuario, set[str]] = {
         "bebida:criar", "bebida:editar", "bebida:listar",
         "categoria:criar", "categoria:editar", "categoria:listar",
         "estoque:adicionar", "estoque:listar",
-        "pedido:criar", "pedido:listar", "pedido:aprovar", "pedido:expedir",
+        "pedido:criar", "pedido:listar", "pedido:cancelar",
+        "pedido:aprovar", "pedido:separar", "pedido:expedir",
         "relatorio:visualizar",
     },
     TipoUsuario.REQUISITANTE: {
@@ -85,7 +96,7 @@ PERMISSOES: dict[TipoUsuario, set[str]] = {
         "bebida:listar",
         "categoria:listar",
         "estoque:adicionar", "estoque:remover", "estoque:listar",
-        "pedido:listar", "pedido:aprovar", "pedido:expedir",
+        "pedido:listar", "pedido:separar", "pedido:expedir",
     },
 }
 
@@ -367,40 +378,63 @@ class Pedido:
             raise ValueError("Apenas pedidos em rascunho podem ser submetidos.")
         self.__status = StatusPedido.PENDENTE
 
-    def concluir(self):
+    def aprovar(self):
         """
-        Transiciona de PENDENTE para CONCLUIDO.
+        Transiciona de PENDENTE para APROVADO.
 
-        Representa que o estoque já foi efetivamente baixado (ver
-        Estoque.baixar / Estoque.liberar_reserva) — a requisição foi
-        separada e atendida.
+        Indica que a requisição foi autorizada e está liberada para
+        separação física no depósito. O estoque ainda está apenas
+        reservado — a baixa física ocorre em separar().
         """
         if self.__status != StatusPedido.PENDENTE:
-            raise ValueError("Apenas pedidos pendentes podem ser concluídos.")
-        self.__status = StatusPedido.CONCLUIDO
+            raise ValueError(
+                f"Apenas pedidos pendentes podem ser aprovados. "
+                f"Status atual: {self.__status.value}"
+            )
+        self.__status = StatusPedido.APROVADO
+
+    def separar(self):
+        """
+        Transiciona de APROVADO para SEPARADO.
+
+        Representa que as mercadorias foram fisicamente retiradas das
+        prateleiras. É neste momento que o serviço deve executar a
+        baixa real nos lotes (FEFO) e liberar a reserva correspondente.
+        """
+        if self.__status != StatusPedido.APROVADO:
+            raise ValueError(
+                f"Apenas pedidos aprovados podem ser separados. "
+                f"Status atual: {self.__status.value}"
+            )
+        self.__status = StatusPedido.SEPARADO
 
     def expedir(self):
         """
-        Transiciona de CONCLUIDO para EXPEDIDO.
+        Transiciona de SEPARADO para EXPEDIDO.
 
         Registra que as mercadorias saíram fisicamente do depósito
-        (entrega/despacho). Só pode ocorrer após a aprovação (CONCLUIDO),
-        pois o estoque já precisa ter sido baixado antes da expedição.
+        (despacho/entrega). O estoque já foi baixado em separar().
         """
-        if self.__status != StatusPedido.CONCLUIDO:
+        if self.__status != StatusPedido.SEPARADO:
             raise ValueError(
-                "Apenas pedidos concluídos (estoque já baixado) podem ser expedidos. "
+                f"Apenas pedidos separados podem ser expedidos. "
                 f"Status atual: {self.__status.value}"
             )
         self.__status = StatusPedido.EXPEDIDO
 
     def cancelar(self):
-        if self.__status == StatusPedido.CONCLUIDO:
-            raise ValueError("Não é possível cancelar um pedido já concluído e retirado.")
-        if self.__status == StatusPedido.EXPEDIDO:
-            raise ValueError("Não é possível cancelar um pedido já expedido.")
-        if self.__status == StatusPedido.CANCELADO:
-            raise ValueError("Pedido já está cancelado.")
+        """
+        Cancela o pedido. Permitido em RASCUNHO, PENDENTE e APROVADO.
+        O serviço é responsável por liberar a reserva se necessário.
+        """
+        nao_cancelaveis = {StatusPedido.SEPARADO, StatusPedido.EXPEDIDO, StatusPedido.CANCELADO}
+        mensagens = {
+            StatusPedido.SEPARADO:  "Não é possível cancelar um pedido já separado.",
+            StatusPedido.EXPEDIDO:  "Não é possível cancelar um pedido já expedido.",
+            StatusPedido.CANCELADO: "Pedido já está cancelado.",
+        }
+        if self.__status in nao_cancelaveis:
+            raise ValueError(mensagens[self.__status])
         self.__status = StatusPedido.CANCELADO
 
     def para_dict(self) -> dict:

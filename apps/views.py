@@ -355,19 +355,35 @@ def pedido_cancelar(request, pedido_id):
 @requer_autenticacao
 def pedido_aprovar(request, pedido_id):
     """
-    POST /api/pedidos/<id>/aprovar/ — Aprova uma requisição pendente:
-    executa a baixa física (FEFO) e libera a reserva de estoque.
+    POST /api/pedidos/<id>/aprovar/ — Aprova requisição pendente,
+    liberando-a para separação física. Não altera o estoque.
     """
     svc = ServicoPedido()
     try:
         if request.method == "POST":
             return _sucesso(svc.aprovar_requisicao(request.usuario, pedido_id))
-
     except PermissionError as e:
         return _erro(str(e), status=403)
     except ValueError as e:
         return _erro(str(e))
+    return _erro("Método não permitido.", status=405)
 
+
+@csrf_exempt
+@requer_autenticacao
+def pedido_separar(request, pedido_id):
+    """
+    POST /api/pedidos/<id>/separar/ — Registra separação física dos itens.
+    Executa a baixa nos lotes (FEFO) e libera a reserva de estoque.
+    """
+    svc = ServicoPedido()
+    try:
+        if request.method == "POST":
+            return _sucesso(svc.separar_requisicao(request.usuario, pedido_id))
+    except PermissionError as e:
+        return _erro(str(e), status=403)
+    except ValueError as e:
+        return _erro(str(e))
     return _erro("Método não permitido.", status=405)
 
 
@@ -581,23 +597,35 @@ _OPENAPI_SPEC = {
             "post": {
                 "tags": ["Pedidos"],
                 "summary": "Aprovar requisição pendente",
-                "description": "Executa a baixa física dos lotes (FEFO) e libera a reserva correspondente. Transiciona a requisição de 'pendente' para 'concluido'.",
+                "description": "Libera a requisição para separação física. Não altera o estoque — a reserva continua ativa. Transiciona de 'pendente' para 'aprovado'.",
                 "parameters": [{"name": "pedido_id", "in": "path", "required": True, "schema": {"type": "string"}}],
                 "responses": {
-                    "200": {"description": "Requisição aprovada e estoque baixado"},
-                    "400": {"description": "Pedido não está pendente, ou estoque insuficiente para baixa"}
+                    "200": {"description": "Requisição aprovada, pronta para separação"},
+                    "400": {"description": "Pedido não está pendente"}
+                }
+            }
+        },
+        "/api/pedidos/{pedido_id}/separar/": {
+            "post": {
+                "tags": ["Pedidos"],
+                "summary": "Registrar separação física dos itens",
+                "description": "Executa a baixa real nos lotes (FEFO) e libera a reserva. Transiciona de 'aprovado' para 'separado'.",
+                "parameters": [{"name": "pedido_id", "in": "path", "required": True, "schema": {"type": "string"}}],
+                "responses": {
+                    "200": {"description": "Separação registrada, estoque baixado"},
+                    "400": {"description": "Pedido não está aprovado"}
                 }
             }
         },
         "/api/pedidos/{pedido_id}/expedir/": {
             "post": {
                 "tags": ["Pedidos"],
-                "summary": "Expedir requisição concluída",
-                "description": "Registra a saída física das mercadorias do depósito. Só pode ocorrer após aprovação (status 'concluido'). Não altera o estoque — a baixa já foi feita na aprovação.",
+                "summary": "Expedir requisição separada",
+                "description": "Registra a saída física das mercadorias do depósito. Só pode ocorrer após separação (status 'separado'). Não altera o estoque.",
                 "parameters": [{"name": "pedido_id", "in": "path", "required": True, "schema": {"type": "string"}}],
                 "responses": {
-                    "200": {"description": "Expedição registrada, pedido agora com status 'expedido'"},
-                    "400": {"description": "Pedido não está concluído"},
+                    "200": {"description": "Expedição registrada, pedido com status 'expedido'"},
+                    "400": {"description": "Pedido não está separado"},
                     "403": {"description": "Sem permissão para expedir"}
                 }
             }
