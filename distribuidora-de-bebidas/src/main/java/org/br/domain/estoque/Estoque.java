@@ -20,14 +20,15 @@ public class Estoque {
     /**
      * Cria uma nova instância de Estoque para o produto especificado.
      *
-     * @param produto O produto a ser gerido no estoque. Não pode ser nulo.
+     * @param produto              O produto a ser gerido no estoque. Não pode ser nulo.
      * @param quantidadeDisponivel A quantidade inicial disponível. Não pode ser negativa.
      * @throws IllegalArgumentException Se o produto for nulo ou a quantidade inicial for menor que zero.
      */
-    public Estoque(Produto produto, int quantidadeDisponivel) {
+    public Estoque(final Produto produto, final int quantidadeDisponivel) {
         if (produto == null) {
             throw new IllegalArgumentException(MSG_PRODUTO_OBRIGATORIO);
         }
+        
         if (quantidadeDisponivel < 0) {
             throw new IllegalArgumentException(MSG_QTD_NEGATIVA);
         }
@@ -47,12 +48,12 @@ public class Estoque {
      * @throws IllegalArgumentException Se a quantidade solicitada for menor ou igual a zero,
      * ou se for maior que a quantidade atualmente disponível.
      */
-    public void reservar(int quantidade) {
+    public void reservar(final int quantidade) {
         validarQuantidadePositiva(quantidade);
 
         if (quantidadeDisponivel < quantidade) {
             throw new IllegalArgumentException(
-                    "Estoque insuficiente para o produto " + produto.getNome()
+                String.format("Estoque insuficiente para o produto %s", produto.getNome())
             );
         }
 
@@ -65,8 +66,9 @@ public class Estoque {
      * @param quantidade A quantidade a ser adicionada. Deve ser estritamente maior que zero.
      * @throws IllegalArgumentException Se a quantidade fornecida for menor ou igual a zero.
      */
-    public void adicionar(int quantidade) {
+    public void adicionar(final int quantidade) {
         validarQuantidadePositiva(quantidade);
+        
         this.quantidadeDisponivel += quantidade;
     }
 
@@ -76,7 +78,7 @@ public class Estoque {
      * @param quantidade O valor da quantidade a ser validada.
      * @throws IllegalArgumentException Se a quantidade for menor ou igual a zero.
      */
-    private void validarQuantidadePositiva(int quantidade) {
+    private void validarQuantidadePositiva(final int quantidade) {
         if (quantidade <= 0) {
             throw new IllegalArgumentException(MSG_QTD_MAIOR_ZERO);
         }
