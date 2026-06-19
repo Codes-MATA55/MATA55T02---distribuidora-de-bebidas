@@ -1,6 +1,7 @@
 package org.br.domain.pedido;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class Pedido {
@@ -10,15 +11,12 @@ public class Pedido {
     private StatusPedido status;
 
     public Pedido(List<ItemPedido> itens) {
-
         if (itens == null || itens.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Pedido deve possuir pelo menos um item"
-            );
+            throw new IllegalArgumentException("Pedido deve possuir pelo menos um item");
         }
 
         this.id = UUID.randomUUID();
-        this.itens = List.copyOf(itens);
+        this.itens = List.copyOf(itens); // Excelente prática de imutabilidade mantida
         this.status = StatusPedido.CRIADO;
     }
 
@@ -35,59 +33,51 @@ public class Pedido {
     }
 
     public void aguardarEstoque() {
-
-        if (status != StatusPedido.CRIADO) {
-            throw new IllegalStateException(
-                    "Somente pedidos criados podem aguardar estoque"
-            );
-        }
-
+        exigirStatus(Set.of(StatusPedido.CRIADO), 
+                "Somente pedidos criados podem aguardar estoque");
+        
         this.status = StatusPedido.AGUARDANDO_ESTOQUE;
     }
 
     public void iniciarSeparacao() {
-
-        if (status != StatusPedido.CRIADO &&
-                status != StatusPedido.AGUARDANDO_ESTOQUE) {
-
-            throw new IllegalStateException(
-                    "Pedido não pode entrar em separação"
-            );
-        }
-
+        exigirStatus(Set.of(StatusPedido.CRIADO, StatusPedido.AGUARDANDO_ESTOQUE), 
+                "Pedido não pode entrar em separação");
+        
         this.status = StatusPedido.EM_SEPARACAO;
     }
 
     public void separar() {
-
-        if (status != StatusPedido.EM_SEPARACAO) {
-            throw new IllegalStateException(
-                    "Pedido deve estar em separação"
-            );
-        }
-
+        exigirStatus(Set.of(StatusPedido.EM_SEPARACAO), 
+                "Pedido deve estar em separação");
+        
         this.status = StatusPedido.SEPARADO;
     }
 
     public void expedir() {
-
-        if (status != StatusPedido.SEPARADO) {
-            throw new IllegalStateException(
-                    "Somente pedidos separados podem ser expedidos"
-            );
-        }
-
+        exigirStatus(Set.of(StatusPedido.SEPARADO), 
+                "Somente pedidos separados podem ser expedidos");
+        
         this.status = StatusPedido.EXPEDIDO;
     }
 
     public void cancelar() {
-
-        if (status == StatusPedido.EXPEDIDO) {
-            throw new IllegalStateException(
-                    "Pedido expedido não pode ser cancelado"
-            );
-        }
-
+        proibirStatus(StatusPedido.EXPEDIDO, 
+                "Pedido expedido não pode ser cancelado");
+        
         this.status = StatusPedido.CANCELADO;
+    }
+
+    // --- Métodos Auxiliares de Validação (Guard Clauses) ---
+
+    private void exigirStatus(Set<StatusPedido> permitidos, String mensagemErro) {
+        if (!permitidos.contains(this.status)) {
+            throw new IllegalStateException(mensagemErro);
+        }
+    }
+
+    private void proibirStatus(StatusPedido proibido, String mensagemErro) {
+        if (this.status == proibido) {
+            throw new IllegalStateException(mensagemErro);
+        }
     }
 }
