@@ -4,14 +4,14 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Email:
-    valor: str
+    value: str
 
     def __post_init__(self):
-        email = self.valor.strip().lower()
+        email = self.value.strip().lower()
 
         regex = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 
         if not re.match(regex, email):
             raise ValueError("E-mail inválido")
 
-        object.__setattr__(self, "valor", email)
+        object.__setattr__(self, "value", email)

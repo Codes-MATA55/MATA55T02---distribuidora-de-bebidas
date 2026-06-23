@@ -4,22 +4,22 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class CNPJ:
-    valor: str
+    value: str
 
     def __post_init__(self):
-        padrao = re.compile(r"\d{14}|\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}")        
-        if not padrao.fullmatch(self.valor):
+        pattern = re.compile(r"\d{14}|\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}")        
+        if not pattern.fullmatch(self.value):
             raise ValueError("Formato de CNPJ inválido")        
         
-        cnpj = re.sub(r"\D", "", self.valor)
+        cnpj = re.sub(r"\D", "", self.value)
 
-        if not self._valido(cnpj):
+        if not self._valid(cnpj):
             raise ValueError("Número de CNPJ inválido")
 
-        object.__setattr__(self, "valor", cnpj)
+        object.__setattr__(self, "value", cnpj)
 
     @staticmethod
-    def _valido(cnpj: str) -> bool:
+    def _valid(cnpj: str) -> bool:
         if len(cnpj) != 14:
             return False
 
@@ -27,59 +27,59 @@ class CNPJ:
             return False   
                 
         
-        soma1 = 0
+        sum1 = 0
         for i in range(12):
             match i:
                 case 0 | 8:
-                    soma1 += int(cnpj[i]) * 5
+                    sum1 += int(cnpj[i]) * 5
                 case 1 | 9:
-                    soma1 += int(cnpj[i]) * 4
+                    sum1 += int(cnpj[i]) * 4
                 case 2 | 10:
-                    soma1 += int(cnpj[i]) * 3  
+                    sum1 += int(cnpj[i]) * 3  
                 case 3 | 11:
-                    soma1 += int(cnpj[i]) * 2 
+                    sum1 += int(cnpj[i]) * 2 
                 case 4:
-                    soma1 += int(cnpj[i]) * 9 
+                    sum1 += int(cnpj[i]) * 9 
                 case 5:
-                    soma1 += int(cnpj[i]) * 8
+                    sum1 += int(cnpj[i]) * 8
                 case 6:
-                    soma1 += int(cnpj[i]) * 7
+                    sum1 += int(cnpj[i]) * 7
                 case 7:
-                    soma1 += int(cnpj[i]) * 6   
+                    sum1 += int(cnpj[i]) * 6   
         
-        resto1 = soma1 % 11
+        remainder1 = sum1 % 11
         
-        verificador_1 = 0 if resto1 == 0 or resto1 == 1 else 11 - resto1
+        check1 = 0 if remainder1 == 0 or remainder1 == 1 else 11 - remainder1
         
-        if int(cnpj[12]) != verificador_1:
+        if int(cnpj[12]) != check1:
             return False
         
-        soma2 = 0
+        sum2 = 0
         
         for i in range(13):
             match i:
                 case 0 | 8:
-                    soma2 += int(cnpj[i]) * 6
+                    sum2 += int(cnpj[i]) * 6
                 case 1 | 9:
-                    soma2 += int(cnpj[i]) * 5
+                    sum2 += int(cnpj[i]) * 5
                 case 2 | 10:
-                    soma2 += int(cnpj[i]) * 4  
+                    sum2 += int(cnpj[i]) * 4  
                 case 3 | 11:
-                    soma2 += int(cnpj[i]) * 3 
+                    sum2 += int(cnpj[i]) * 3 
                 case 4 | 12:
-                    soma2 += int(cnpj[i]) * 2 
+                    sum2 += int(cnpj[i]) * 2 
                 case 5:
-                    soma2 += int(cnpj[i]) * 9
+                    sum2 += int(cnpj[i]) * 9
                 case 6:
-                    soma2 += int(cnpj[i]) * 8
+                    sum2 += int(cnpj[i]) * 8
                 case 7:
-                    soma2 += int(cnpj[i]) * 7
+                    sum2 += int(cnpj[i]) * 7
                 
-        resto2 = soma2 % 11
+        remainder2 = sum2 % 11
         
-        verificador_2 = 0 if resto2 == 0 or resto2 == 1 else 11 - resto2
+        check2 = 0 if remainder2 == 0 or remainder2 == 1 else 11 - remainder2
         
-        if int(cnpj[13]) != verificador_2:
+        if int(cnpj[13]) != check2:
             return False
         
         return True

@@ -4,22 +4,22 @@ from .dinheiro import Dinheiro
 
 @dataclass(frozen=True)
 class ItemPedido:
-    id_produto: int
-    quantidade: int
-    preco_unitario_str: str
-    preco_unitario: Dinheiro = field(init=False)
+    product_id: int
+    amount: int
+    unit_price_str: str
+    unit_price: Dinheiro = field(init=False)
 
     def __post_init__(self):
-        if not isinstance(self.id_produto, int):
+        if not isinstance(self.product_id, int):
             raise ValueError("ID do produto inválido")
 
-        if not isinstance(self.quantidade, int) or self.quantidade <= 0:
-            raise ValueError("Quantidade inválida")
+        if not isinstance(self.amount, int) or self.amount <= 0:
+            raise ValueError("amount inválida")
         
-        object.__setattr__(self, "preco_unitario", Dinheiro(self.preco_unitario_str))        
+        object.__setattr__(self, "unit_price", Dinheiro(self.unit_price_str))        
     
     def calcular_subtotal(self) -> Dinheiro:
-        quantia_centavos = self.preco_unitario.valor * self.quantidade
-        quantia_string = Dinheiro.converter_centavos_para_string(quantia_centavos)
+        amount_cents = self.unit_price.value * self.amount
+        amount_string = Dinheiro.convert_cents_to_string(amount_cents)
 
-        return Dinheiro(quantia_string)
+        return Dinheiro(amount_string)

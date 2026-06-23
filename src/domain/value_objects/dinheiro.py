@@ -4,28 +4,28 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class Dinheiro:
-    valor: int = field(init=False)
-    valor_str: str    
+    value: int = field(init=False)
+    value_str: str    
 
     def __post_init__(self):
-        if not isinstance(self.valor_str, str):
-            raise ValueError("Valor não está no formato string")      
+        if not isinstance(self.value_str, str):
+            raise ValueError("value não está no formato string")      
           
-        dinheiro_str = self.valor_str
+        dinheiro_str = self.value_str
 
-        if not self._valido(dinheiro_str):
-            raise ValueError("Valor ou formato inválido")
+        if not self._valid(dinheiro_str):
+            raise ValueError("value ou formato inválido")
         
         dinheiro_int = int(re.sub(r"[.,]", "", dinheiro_str))
 
-        object.__setattr__(self, "valor_str", dinheiro_str)
-        object.__setattr__(self, "valor", dinheiro_int)
+        object.__setattr__(self, "value_str", dinheiro_str)
+        object.__setattr__(self, "value", dinheiro_int)
 
     @staticmethod
-    def _valido(dinheiro_str: str) -> bool:    
+    def _valid(dinheiro_str: str) -> bool:    
         
-        padrao = re.compile(r"^(?:\d{1,3}(?:\.\d{3})*),\d{2}$")
-        if not padrao.fullmatch(dinheiro_str):
+        pattern = re.compile(r"^(?:\d{1,3}(?:\.\d{3})*),\d{2}$")
+        if not pattern.fullmatch(dinheiro_str):
             return False
         
         dinheiro_int = int(re.sub(r"[.,]", "", dinheiro_str))
@@ -34,12 +34,12 @@ class Dinheiro:
         return True
     
     @staticmethod
-    def converter_centavos_para_string( centavos: int) -> str:
-        reais = centavos // 100
-        centavos_restantes = centavos % 100
+    def convert_cents_to_string( cents: int) -> str:
+        reais = cents // 100
+        remaining_cents = cents % 100
 
-        valor_str = (f"{reais:,}".replace(",", ".") + f",{centavos_restantes:02d}")
+        value_str = (f"{reais:,}".replace(",", ".") + f",{remaining_cents:02d}")
 
-        return valor_str   
+        return value_str   
 
         

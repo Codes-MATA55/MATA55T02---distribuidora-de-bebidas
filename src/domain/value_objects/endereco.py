@@ -1,66 +1,66 @@
 import re
 from dataclasses import dataclass
 
-_UFS_VALIDAS = frozenset({"AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"})
+_VALID_STATES = frozenset({"AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"})
 
 @dataclass(frozen=True)
 class Endereco:
     cep: str
-    rua: str
-    numero: str
-    bairro: str
-    cidade: str
-    uf: str
-    complemento: str = ""
+    street: str
+    street_number: str
+    neighbourhood: str
+    city: str
+    state: str
+    additional_address_details: str = ""
 
     def __post_init__(self) -> None:
-        self._validar_cep()
-        self._validar_rua()
-        self._validar_numero()
-        self._validar_bairro()
-        self._validar_cidade()
-        self._validar_uf()
+        self._validate_cep()
+        self._validate_street()
+        self._validate_street_number()
+        self._validate_neighbourhood()
+        self._validate_city()
+        self._validate_state()
 
-    def _validar_cep(self) -> None:
-        apenas_digitos = re.sub(r'\D', '', self.cep)
-        if len(apenas_digitos) != 8:
+    def _validate_cep(self) -> None:
+        digits_only = re.sub(r'\D', '', self.cep)
+        if len(digits_only) != 8:
             raise ValueError(f"CEP inválido: '{self.cep}'. Esperado 8 dígitos.")
         
-    def _validar_rua(self) -> None:
-        if not self.rua or not self.rua.strip():
+    def _validate_street(self) -> None:
+        if not self.street or not self.street.strip():
             raise ValueError("Rua não pode ser vazia.")
 
-    def _validar_numero(self) -> None:
-        if not self.numero or not self.numero.strip():
+    def _validate_street_number(self) -> None:
+        if not self.street_number or not self.street_number.strip():
             raise ValueError("Número não pode ser vazio. Use 'S/N' se não houver.")
-        if not re.match(r'^[a-zA-Z0-9/\s-]+$', self.numero.strip()):
-            raise ValueError(f"Número inválido: '{self.numero}'.")
+        if not re.match(r'^[a-zA-Z0-9/\s-]+$', self.street_number.strip()):
+            raise ValueError(f"Número inválido: '{self.street_number}'.")
 
-    def _validar_bairro(self) -> None:
-        if not self.bairro or not self.bairro.strip():
+    def _validate_neighbourhood(self) -> None:
+        if not self.neighbourhood or not self.neighbourhood.strip():
             raise ValueError("Bairro não pode ser vazio.")
 
-    def _validar_cidade(self) -> None:
-        if not self.cidade or not self.cidade.strip():
+    def _validate_city(self) -> None:
+        if not self.city or not self.city.strip():
             raise ValueError("Cidade não pode ser vazia.")
-        if len(self.cidade.strip()) < 3:
+        if len(self.city.strip()) < 3:
             raise ValueError("Nome de cidade muito curto.")
 
-    def _validar_uf(self) -> None:
-        if not self.uf:
+    def _validate_state(self) -> None:
+        if not self.state:
             raise ValueError("UF não pode ser vazia.")
-        if self.uf.upper() not in _UFS_VALIDAS:
-            raise ValueError(f"UF inválida: '{self.uf}'. Use a sigla do estado (ex: SP, BA).")
+        if self.state.upper() not in _VALID_STATES:
+            raise ValueError(f"UF inválida: '{self.state}'. Use a sigla do estado (ex: SP, BA).")
 
     @property
-    def cep_formatado(self) -> str:
-        apenas_digitos = re.sub(r'\D', '', self.cep)
-        return f"{apenas_digitos[:5]}-{apenas_digitos[5:]}"
+    def format_cep(self) -> str:
+        digits_only = re.sub(r'\D', '', self.cep)
+        return f"{digits_only[:5]}-{digits_only[5:]}"
 
     def __str__(self) -> str:
-        complemento = f", {self.complemento}" if self.complemento else ""
+        additional_address_details = f", {self.additional_address_details}" if self.additional_address_details else ""
         return (
-            f"{self.rua}, {self.numero}{complemento} — "
-            f"{self.bairro}, {self.cidade}/{self.uf.upper()} — "
-            f"CEP {self.cep_formatado}"
+            f"{self.street}, {self.street_number}{additional_address_details} — "
+            f"{self.neighbourhood}, {self.city}/{self.state.upper()} — "
+            f"CEP {self.format_cep}"
         )
