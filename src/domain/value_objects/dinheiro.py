@@ -11,25 +11,25 @@ class Money:
         if not isinstance(self.value_str, str):
             raise ValueError("value não está no formato string")      
           
-        dinheiro_str = self.value_str
+        money_str = self.value_str
 
-        if not self._valid(dinheiro_str):
+        if not self._valid(money_str):
             raise ValueError("value ou formato inválido")
         
-        dinheiro_int = int(re.sub(r"[.,]", "", dinheiro_str))
+        money_int = int(re.sub(r"[.,]", "", money_str))
 
-        object.__setattr__(self, "value_str", dinheiro_str)
-        object.__setattr__(self, "value", dinheiro_int)
+        object.__setattr__(self, "value_str", money_str)
+        object.__setattr__(self, "value", money_int)
 
     @staticmethod
-    def _valid(dinheiro_str: str) -> bool:    
+    def _valid(money_str: str) -> bool:    
         
         pattern = re.compile(r"^(?:\d{1,3}(?:\.\d{3})*),\d{2}$")
-        if not pattern.fullmatch(dinheiro_str):
+        if not pattern.fullmatch(money_str):
             return False
         
-        dinheiro_int = int(re.sub(r"[.,]", "", dinheiro_str))
-        if dinheiro_int < 0:
+        money_int = int(re.sub(r"[.,]", "", money_str))
+        if money_int < 0:
             return False
         return True
     
@@ -40,6 +40,4 @@ class Money:
 
         value_str = (f"{reais:,}".replace(",", ".") + f",{remaining_cents:02d}")
 
-        return value_str   
-
-        
+        return value_str

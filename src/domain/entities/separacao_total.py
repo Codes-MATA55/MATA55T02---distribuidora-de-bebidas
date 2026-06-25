@@ -3,8 +3,6 @@ from typing import List
 
 from domain.entities.lote import Batch
 from domain.entities.pedido import Order
-from domain.entities.produto import Product
-from domain.value_objects.item_pedido import OrderItem
 
 
 class TotalSeparation:
@@ -37,7 +35,7 @@ class TotalSeparation:
 
             if total_available < necessary_amount:
                 raise ValueError(
-                    f"Separação inválida para o produto '{product._name}'. "
+                    f"Separação inválida para o produto '{order_item_id}'. "
                     f"Necessário: {necessary_amount}, disponível em lotes válidos: {total_available}"
                 )
 
@@ -61,7 +59,7 @@ class TotalSeparation:
                 amount_to_remove = min(batch._current_amount, remaining_amount)
                 batch.consume_amount(amount_to_remove)
                 remaining_amount -= amount_to_remove
-
-            product.decrease_stock(getattr(item, "amount", 0))
+            # REVER BAIXA DE ESTOQUE
+            #product.decrease_stock(getattr(item, "amount", 0))
 
         order.update_status("SEPARADO")

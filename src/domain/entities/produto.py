@@ -49,11 +49,7 @@ class Product:
 
     @property
     def description(self):
-        return self._description
-
-    @property
-    def barcode(self):
-        return self._barcode
+        return self._description 
 
     @property
     def barcode(self):

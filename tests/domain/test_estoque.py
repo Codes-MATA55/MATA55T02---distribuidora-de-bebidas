@@ -1,54 +1,55 @@
 import unittest
-from domain.entities.produto import Produto
-from domain.enums.tipo_movimentacao import TipoMovimentacao
-from domain.entities.movimentacao_estoque import MovimentacaoEstoque
+from domain.entities.produto import Product
+from domain.enums.tipo_movimentacao import MovementType
+from domain.entities.movimentacao_estoque import StockMovement
 
 
-class TestEstoque(unittest.TestCase):
+class TestStock(unittest.TestCase):
     def setUp(self):
-        self.produto = Produto(
-            marca="Coca-Cola",
-            nome="Refri Coca",
-            descricao="Pet 2L",
-            codigo_barras="7892000200022",
-            preco=8.00,
-            quantidade_estoque=50,
-            fornecedor="Coca-Cola BR"
+        self.product = Product(
+            id='1',
+            brand="Coca-Cola",
+            name="Refri Coca",
+            description="Pet 2L",
+            barcode="7892000200022",
+            price=8.00,
+            amount_stock=50,
+            supplier="Coca-Cola BR"
         )
 
-    def test_movimentacao_entrada_sucesso(self):
-        movimentacao = MovimentacaoEstoque(
+    def test_stock_inbound_succeeds(self):
+        movimentacao = StockMovement(
             id=1,
-            produto=self.produto,
-            tipo=TipoMovimentacao.ENTRADA,
-            quantidade=20
+            product=self.product,
+            type=MovementType.INBOUND,
+            amount=20
         )
-        self.assertEqual(self.produto.quantidade_estoque, 70)
-        self.assertEqual(movimentacao.quantidade, 20)
+        self.assertEqual(self.product.amount_stock, 70)
+        self.assertEqual(movimentacao.amount, 20)
 
-    def test_movimentacao_saida_sucesso(self):
-        movimentacao = MovimentacaoEstoque(
+    def test_stock_oubound_succeeds(self):
+        movimentacao = StockMovement(
             id=2,
-            produto=self.produto,
-            tipo=TipoMovimentacao.SAIDA,
-            quantidade=10
+            product=self.product,
+            type=MovementType.OUTBOUND,
+            amount=10
         )
-        self.assertEqual(self.produto.quantidade_estoque, 40)
+        self.assertEqual(self.product.amount_stock, 40)
 
-    def test_movimentacao_saida_estourar_estoque(self):
+    def test_stock_outbound_when_stock_is_insufficient(self):
         with self.assertRaises(ValueError):
-            MovimentacaoEstoque(
+            StockMovement(
                 id=3,
-                produto=self.produto,
-                tipo=TipoMovimentacao.SAIDA,
-                quantidade=60
+                product=self.product,
+                type=MovementType.OUTBOUND,
+                amount=60
             )
 
-    def test_quantidade_movimentacao_invalida(self):
+    def test_inbound_for_invalid_quantity(self):
         with self.assertRaises(ValueError):
-            MovimentacaoEstoque(
+            StockMovement(
                 id=4,
-                produto=self.produto,
-                tipo=TipoMovimentacao.ENTRADA,
-                quantidade=0
+                product=self.product,
+                type=MovementType.INBOUND,
+                amount=0
             )

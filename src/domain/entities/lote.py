@@ -21,7 +21,7 @@ class Batch:
         return self._id
 
     @property
-    def product(self) -> product:
+    def product(self) -> Product:
         return self._product
 
     @property

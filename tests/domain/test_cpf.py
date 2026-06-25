@@ -5,7 +5,7 @@ from domain.value_objects.cpf import CPF
 class TestCPF(unittest.TestCase):
     def test_cpf_valido(self):
         cpf = CPF("11144477735")
-        self.assertEqual(cpf.valor, "11144477735")
+        self.assertEqual(cpf.value, "11144477735")
 
     def test_cpf_tamanho_invalido(self):
         with self.assertRaisesRegex(ValueError, "CPF inválido"):
@@ -17,7 +17,7 @@ class TestCPF(unittest.TestCase):
 
     def test_cpf_caracteres_nao_numericos(self):
         cpf = CPF("111.444.777-35")
-        self.assertEqual(cpf.valor, "11144477735")
+        self.assertEqual(cpf.value, "11144477735")
 
     def test_cpf_digitos_verificadores_errados(self):
         with self.assertRaisesRegex(ValueError, "CPF inválido"):

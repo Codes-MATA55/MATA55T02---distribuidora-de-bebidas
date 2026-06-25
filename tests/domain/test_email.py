@@ -3,19 +3,19 @@ from domain.value_objects.email import Email
 
 
 class TestEmail(unittest.TestCase):
-    def test_email_valido(self):
+    def test_valid_email(self):
         email = Email("compras@distribuidora.com.br")
-        self.assertEqual(email.valor, "compras@distribuidora.com.br")
+        self.assertEqual(email.value, "compras@distribuidora.com.br")
 
-    def test_email_espacos_e_lowercase(self):
+    def test_email_spaces_and_lowercases(self):
         email = Email("  COMPRAS@distribuidora.com.br  ")
-        self.assertEqual(email.valor, "compras@distribuidora.com.br")
+        self.assertEqual(email.value, "compras@distribuidora.com.br")
 
-    def test_email_arroba(self):
+    def test_email_at_sign(self):
         with self.assertRaisesRegex(ValueError, "E-mail inválido"):
             Email("compras_distribuidora.com.br")
 
-    def test_email_sem_dominio(self):
+    def test_email_no_domain(self):
         with self.assertRaisesRegex(ValueError, "E-mail inválido"):
             Email("compras@")
 
