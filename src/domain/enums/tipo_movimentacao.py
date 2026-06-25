@@ -1,6 +1,6 @@
 from enum import Enum
 
 
-class TipoMovimentacao(Enum):
-    ENTRADA = "ENTRADA"
-    SAIDA = "SAÍDA"
+class MovementType(Enum):
+    INBOUND = "ENTRADA"
+    OUTBOUND = "SAÍDA"

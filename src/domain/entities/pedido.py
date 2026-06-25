@@ -1,12 +1,12 @@
 from typing import List
 
-from domain.value_objects.dinheiro import Dinheiro
+from domain.value_objects.dinheiro import Money
 from domain.value_objects.ids import ClienteId, PedidoId
-from domain.value_objects.item_pedido import ItemPedido
+from domain.value_objects.item_pedido import OrderItem
 
 
-class Pedido:
-    TRANSICOES_STATUS = {
+class Order:
+    TRANSITION_STATUS = {
         "AGUARDANDO PAGAMENTO": {
             "EM PROCESSAMENTO",
             "CANCELADO",
@@ -36,56 +36,56 @@ class Pedido:
         "CANCELADO": set(),
     }
 
-    def __init__(self, itens: List[ItemPedido], id: PedidoId = None, id_cliente: ClienteId = None):
+    def __init__(self, items: List[OrderItem], id: PedidoId = None, client_id: ClienteId = None):
         self.id = id or PedidoId()
-        self.id_cliente = id_cliente or ClienteId()
-        self.itens = itens
+        self.client_id = client_id or ClienteId()
+        self.items = items
         self.status = "AGUARDANDO PAGAMENTO"
-        self.total = self.calcular_total()
+        self.total = self.calculate_total()
 
     @property
-    def produtos(self) -> List[ItemPedido]:
-        return self.itens
+    def produtos(self) -> List[OrderItem]:
+        return self.items
 
     @produtos.setter
-    def produtos(self, itens: List[ItemPedido]) -> None:
-        self.itens = itens
+    def produtos(self, items: List[OrderItem]) -> None:
+        self.items = items
 
-    def calcular_total(self) -> Dinheiro:
-        subtotais = [item.calcular_subtotal() for item in self.itens]
-        total_centavos = sum(subtotal.valor for subtotal in subtotais)
-        total_formatado = Dinheiro.converter_centavos_para_string(total_centavos)
-        return Dinheiro(total_formatado)
+    def calculate_total(self) -> Money:
+        item_totals = [item.get_total() for item in self.items]
+        total_cents = sum(total.value for total in item_totals)
+        total_formatted = Money.convert_cents_to_string(total_cents)
+        return Money(total_formatted)
 
-    def atualizar_status(self, novo_status: str):
-        status_atual = self.status
-        if novo_status not in self.TRANSICOES_STATUS[status_atual]:
-            raise ValueError(f"Não é permitido mudar de {status_atual} para {novo_status}")
-        self.status = novo_status
+    def update_status(self, new_status: str):
+        current_status = self.status
+        if new_status not in self.TRANSITION_STATUS[current_status]:
+            raise ValueError(f"Não é permitido mudar de {current_status} para {new_status}")
+        self.status = new_status
 
-    def adicionar_item(self, item_pedido: ItemPedido):
-        if not isinstance(item_pedido, ItemPedido):
+    def add_item(self, order_item: OrderItem):
+        if not isinstance(order_item, OrderItem):
             raise ValueError("Item inválido")
-        self.itens.append(item_pedido)
-        self.total = self.calcular_total()
+        self.items.append(order_item)
+        self.total = self.calculate_total()
 
-    def adicionar_produto(self, item_pedido: ItemPedido):
-        self.adicionar_item(item_pedido)
+    def add_product(self, order_item: OrderItem):
+        self.add_item(order_item)
 
-    def remover_item_por_produto(self, id_produto):
-        self.itens = [item for item in self.itens if item.id_produto != id_produto]
-        self.total = self.calcular_total()
+    def remove_item_by_product(self, removed_product_id):
+        self.items = [item for item in self.items if item.product_id != removed_product_id]
+        self.total = self.calculate_total()
 
-    def remover_produto(self, id_produto):
-        self.remover_item_por_produto(id_produto)
+    def remove_product(self, product_id):
+        self.remove_item_by_product(product_id)
 
-    def cancelar_pedido(self):
+    def cancel_order(self):
         self.status = "CANCELADO"
 
-    def finalizar_pedido(self):
+    def end_order(self):
         self.status = "FINALIZADO"
 
-    def obter_total_financeiro_separado(self) -> Dinheiro:
+    def get_separate_financial_total(self) -> Money:
         if self.status not in ["SEPARADO", "FINALIZADO"]:
             raise ValueError(
                 f"Não é possível calcular o total separado. "
@@ -94,11 +94,11 @@ class Pedido:
 
         return self.total
 
-    def obter_quantidade_fisica_separada(self) -> int:
+    def get_separate_physical_amount(self) -> int:
         if self.status not in ["SEPARADO", "FINALIZADO"]:
             raise ValueError(
                 f"Não é possível obter a quantidade separada. "
                 f"O pedido está em estado: {self.status}"
             )
 
-        return sum(item.quantidade for item in self.itens)
+        return sum(item.amount for item in self.items)

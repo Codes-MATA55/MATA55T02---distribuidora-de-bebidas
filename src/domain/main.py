@@ -1,25 +1,25 @@
-class Usuario:
-    def __init__(self, id, nome, cargo):
+class User:
+    def __init__(self, id, name, role):
         self.id = id
-        self.nome = nome
-        self.cargo = cargo
+        self.name = name
+        self.role = role
 
 
-class Cargo:
-    def __init__(self, id, nome, funcao, salario):
+class Role:
+    def __init__(self, id, name, position, salary):
         self.id = id
-        self.nome = nome
-        self.funcao = funcao
-        self.salario = salario
+        self.name = name
+        self.position = position
+        self.salary = salary
 
 
-class Marca:
-    def __init__(self, id, nome):
+class Brand:
+    def __init__(self, id, name):
         self.id = id
-        self.nome = nome
+        self.name = name
 
 
-class Categoria:
-    def __init__(self, id, nome):
+class Category:
+    def __init__(self, id, name):
         self.id = id
-        self.nome = nome
+        self.name = name

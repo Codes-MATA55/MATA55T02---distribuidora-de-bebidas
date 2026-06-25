@@ -1,14 +1,14 @@
 from typing import List
 
-from domain.entities.movimentacao_estoque import MovimentacaoEstoque
+from domain.entities.movimentacao_estoque import StockMovement
 
 
-class RegistroEstoque:
+class StockRegistry:
     def __init__(self):
-        self._movimentacoes: List[MovimentacaoEstoque] = []
+        self._movements: List[StockMovement] = []
 
-    def registrar(self, movimentacao: MovimentacaoEstoque):
-        self._movimentacoes.append(movimentacao)
+    def register(self, movement: StockMovement):
+        self._movements.append(movement)
 
-    def listar_historico(self) -> List[MovimentacaoEstoque]:
-        return list(self._movimentacoes)
+    def list_history(self) -> List[StockMovement]:
+        return list(self._movements)

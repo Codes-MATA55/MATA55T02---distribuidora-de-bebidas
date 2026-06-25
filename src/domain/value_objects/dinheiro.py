@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
-class Dinheiro:
+class Money:
     value: int = field(init=False)
     value_str: str    
 

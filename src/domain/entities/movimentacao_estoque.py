@@ -1,27 +1,27 @@
 from datetime import datetime
 
-from domain.entities.produto import Produto
-from domain.enums.tipo_movimentacao import TipoMovimentacao
+from domain.entities.produto import Product
+from domain.enums.tipo_movimentacao import MovementType
 from domain.value_objects.ids import MovimentacaoId
 
 
-class MovimentacaoEstoque:
-    def __init__(self, produto: Produto, tipo: TipoMovimentacao, quantidade: int, id: MovimentacaoId = None):
-        if quantidade <= 0:
+class StockMovement:
+    def __init__(self, product: Product, type: MovementType, amount: int, id: MovimentacaoId = None):
+        if amount <= 0:
             raise ValueError("Quantidade da movimentação deve ser positiva")
         self.id = id or MovimentacaoId()
-        self.produto = produto
-        self.tipo = tipo
-        self.quantidade = quantidade
-        self.data_movimentacao = datetime.now()
-        self.atualizar_estoque()
+        self.product = product
+        self.type = type
+        self.amount = amount
+        self.movement_date = datetime.now()
+        self.update_stock()
 
     @property
     def data(self):
-        return self.data_movimentacao
+        return self.movement_date
 
-    def atualizar_estoque(self):
-        if self.tipo == TipoMovimentacao.ENTRADA:
-            self.produto.adicionar_estoque(self.quantidade)
-        elif self.tipo == TipoMovimentacao.SAIDA:
-            self.produto.baixar_estoque(self.quantidade)
+    def update_stock(self):
+        if self.type == MovementType.INBOUND:
+            self.product.add_stock(self.amount)
+        elif self.type == MovementType.OUTBOUND:
+            self.product.remove_stock(self.amount)

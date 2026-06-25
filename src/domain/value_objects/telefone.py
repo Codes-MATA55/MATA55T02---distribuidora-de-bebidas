@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class Telefone:
+class PhoneNumber:
     value: str
 
     def __post_init__(self):

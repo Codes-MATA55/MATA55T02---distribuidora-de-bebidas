@@ -4,7 +4,7 @@ from dataclasses import dataclass
 _VALID_STATES = frozenset({"AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"})
 
 @dataclass(frozen=True)
-class Endereco:
+class Address:
     cep: str
     street: str
     street_number: str

@@ -1,96 +1,106 @@
-class Produto:
+class Product:
     def __init__(
         self,
-        marca: str,
-        nome: str,
-        descricao: str,
-        codigo_barras: str,
-        preco: float,
-        quantidade_estoque: int,
-        fornecedor: str
+        id: str,
+        brand: str,
+        name: str,
+        description: str,
+        barcode: str,
+        price: float,
+        amount_stock: int,
+        supplier: str
     ):
-        if not marca or not marca.strip():
+        
+        if not id or not id.strip():
+            raise ValueError("Id é obrigatório")   
+             
+        if not brand or not brand.strip():
             raise ValueError("Marca é obrigatória")
 
-        if not nome or not nome.strip():
+        if not name or not name.strip():
             raise ValueError("Nome é obrigatório")
 
-        if preco < 0:
+        if price < 0:
             raise ValueError("Preço não pode ser negativo")
 
-        if quantidade_estoque < 0:
-            raise ValueError("Quantidade em estoque não pode ser negativa")
+        if amount_stock < 0:
+            raise ValueError("amount em estoque não pode ser negativa")
 
-        self._marca = marca.strip()
-        self._nome = nome.strip()
-        self._descricao = descricao.strip()
-        self._codigo_barras = codigo_barras.strip()
-        self._preco = preco
-        self._quantidade_estoque = quantidade_estoque
-        self._fornecedor = fornecedor
-
-    @property
-    def marca(self):
-        return self._marca
+        self._id = id.strip()
+        self._brand = brand.strip()
+        self._name = name.strip()
+        self._description = description.strip()
+        self._barcode = barcode.strip()
+        self._price = price
+        self._amount_stock = amount_stock
+        self._supplier = supplier
 
     @property
-    def nome(self):
-        return self._nome
+    def id(self):
+        return self._id
 
     @property
-    def descricao(self):
-        return self._descricao
+    def brand(self):
+        return self._brand
 
     @property
-    def codigo_barras(self):
-        return self._codigo_barras
+    def name(self):
+        return self._name
 
     @property
-    def codbarras(self):
-        return self.codigo_barras
+    def description(self):
+        return self._description
 
     @property
-    def preco(self):
-        return self._preco
+    def barcode(self):
+        return self._barcode
 
     @property
-    def quantidade_estoque(self):
-        return self._quantidade_estoque
+    def barcode(self):
+        return self.barcode
+
+    @property
+    def price(self):
+        return self._price
+
+    @property
+    def amount_stock(self):
+        return self._amount_stock
 
     @property
     def qtestoque(self):
-        return self.quantidade_estoque
+        return self.amount_stock
 
     @property
-    def fornecedor(self):
-        return self._fornecedor
+    def supplier(self):
+        return self._supplier
 
-    def adicionar_estoque(self, quantidade: int):
-        if quantidade <= 0:
+    def add_stock(self, amount: int):
+        if amount <= 0:
             raise ValueError("A quantidade a adicionar deve ser maior que zero")
 
-        self._quantidade_estoque += quantidade
+        self._amount_stock += amount
 
-    def baixar_estoque(self, quantidade: int):
-        if quantidade <= 0:
+    def remove_stock(self, amount: int):
+        if amount <= 0:
             raise ValueError("A quantidade a remover deve ser maior que zero")
 
-        if quantidade > self._quantidade_estoque:
+        if amount > self._amount_stock:
             raise ValueError("Saldo insuficiente em estoque")
 
-        self._quantidade_estoque -= quantidade
+        self._amount_stock -= amount
 
-    def remover_estoque(self, quantidade: int):
-        self.baixar_estoque(quantidade)
+    def decrease_stock(self, amount: int):
+        self.remove_stock(amount)
 
-    def alterar_preco(self, novo_preco: float):
-        if novo_preco < 0:
+    def change_price(self, new_price: float):
+        if new_price < 0:
             raise ValueError("Preço não pode ser negativo")
 
-        self._preco = novo_preco
+        self._price = new_price
 
-    def alterar_descricao(self, nova_descricao: str):
-        if not nova_descricao or not nova_descricao.strip():
+    def change_description(self, new_description: str):
+        if not new_description or not new_description.strip():
             raise ValueError("Descrição não pode ser vazia")
 
-        self._descricao = nova_descricao.strip()
+        self._description = new_description.strip()

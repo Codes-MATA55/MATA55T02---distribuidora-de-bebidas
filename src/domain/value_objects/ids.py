@@ -12,7 +12,7 @@ class EntityId:
 
 class PedidoId(EntityId): pass
 class FornecedorId(EntityId): pass
-class LoteId(EntityId): pass
+class BatchId(EntityId): pass
 class ProdutoId(EntityId): pass
 class MovimentacaoId(EntityId): pass
 class ClienteId(EntityId): pass

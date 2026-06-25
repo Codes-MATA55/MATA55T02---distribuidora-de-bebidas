@@ -1,65 +1,67 @@
 from datetime import date
 from typing import List
 
-from domain.entities.lote import Lote
-from domain.entities.pedido import Pedido
+from domain.entities.lote import Batch
+from domain.entities.pedido import Order
+from domain.entities.produto import Product
+from domain.value_objects.item_pedido import OrderItem
 
 
-class SeparacaoTotal:
+class TotalSeparation:
     """Serviço de domínio para separação total com estratégia FEFO."""
 
-    def executar(self, pedido: Pedido, lotes_disponiveis: List[Lote], data_referencia: date = None) -> None:
-        if data_referencia is None:
-            data_referencia = date.today()
+    def execute(self, order: Order, available_batches: List[Batch], reference_date: date = None) -> None:
+        if reference_date is None:
+            reference_date = date.today()
 
-        if pedido.status != "EM PROCESSAMENTO":
+        if order.status != "EM PROCESSAMENTO":
             raise ValueError(
-                f"Não é possível separar o pedido {pedido.id}. "
-                f"Status atual inválido: {pedido.status}"
+                f"Não é possível separar o pedido {order.id}. "
+                f"Status atual inválido: {order.status}"
             )
 
-        for item in pedido.itens:
-            produto = getattr(item, "produto", None)
-            quantidade_necessaria = getattr(item, "quantidade", 0)
+        for item in order.items:
+            order_item_id = getattr(item, "product_id", None)
+            necessary_amount = getattr(item, "amount", 0)
 
-            if not produto:
+            if not order_item_id:
                 raise ValueError("Item de pedido não possui um produto associado.")
 
-            lotes_do_produto = [
-                lote for lote in lotes_disponiveis
-                if lote.produto.codigo_barras == produto.codigo_barras
-                and not lote.esta_vencido(data_referencia)
+            product_batches = [
+                batch for batch in available_batches
+                if batch._product._id == order_item_id
+                and not batch.is_expired(reference_date)
             ]
 
-            total_disponivel = sum(lote.quantidade_atual for lote in lotes_do_produto)
+            total_available = sum(batch._current_amount for batch in product_batches)
 
-            if total_disponivel < quantidade_necessaria:
+            if total_available < necessary_amount:
                 raise ValueError(
-                    f"Separação inválida para o produto '{produto.nome}'. "
-                    f"Necessário: {quantidade_necessaria}, disponível em lotes válidos: {total_disponivel}"
+                    f"Separação inválida para o produto '{product._name}'. "
+                    f"Necessário: {necessary_amount}, disponível em lotes válidos: {total_available}"
                 )
 
-        for item in pedido.itens:
-            produto = getattr(item, "produto", None)
-            quantidade_restante = getattr(item, "quantidade", 0)
+        for item in order.items:
+            order_item_id = getattr(item, "product_id", None)
+            remaining_amount = getattr(item, "amount", 0)
 
-            lotes_do_produto = sorted(
+            product_batches = sorted(
                 [
-                    lote for lote in lotes_disponiveis
-                    if lote.produto.codigo_barras == produto.codigo_barras
-                    and not lote.esta_vencido(data_referencia)
+                    batch for batch in available_batches
+                    if batch._product._id == order_item_id
+                    and not batch.is_expired(reference_date)
                 ],
-                key=lambda lote: lote.data_validade,
+                key=lambda batch: batch.expiration_date,
             )
 
-            for lote in lotes_do_produto:
-                if quantidade_restante <= 0:
+            for batch in product_batches:
+                if remaining_amount <= 0:
                     break
 
-                quantidade_a_retirar = min(lote.quantidade_atual, quantidade_restante)
-                lote.consumir_quantidade(quantidade_a_retirar)
-                quantidade_restante -= quantidade_a_retirar
+                amount_to_remove = min(batch._current_amount, remaining_amount)
+                batch.consume_amount(amount_to_remove)
+                remaining_amount -= amount_to_remove
 
-            produto.baixar_estoque(getattr(item, "quantidade", 0))
+            product.decrease_stock(getattr(item, "amount", 0))
 
-        pedido.atualizar_status("SEPARADO")
+        order.update_status("SEPARADO")
