@@ -13,9 +13,9 @@ class TransicaoDeEstadoInvalidaException(RegraDeNegocioException):
 
 class EstoqueInsuficienteException(RegraDeNegocioException):
     """Lançada quando não há estoque suficiente para uma operação."""
-    def __init__(self, produto_id: str, quantidade_solicitada: int, quantidade_disponivel: int):
+    def __init__(self, produto_idd: str, quantidade_solicitada: int, quantidade_disponivel: int):
         super().__init__(
-            f"Estoque insuficiente para o produto '{produto_id}'. "
+            f"Estoque insuficiente para o produto '{produto_idd}'. "
             f"Solicitado: {quantidade_solicitada}, Disponível: {quantidade_disponivel}."
         )
 
