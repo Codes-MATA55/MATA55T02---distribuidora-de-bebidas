@@ -4,6 +4,7 @@ from src.domain.shared.value_objects.telefone import Telefone
 
 
 class Fornecedor:
+    """representa um fornecedor no sistema"""
     def __init__(self, id: int, nome: str, cnpj: CNPJ, telefone: Telefone, email: Email):
         self.id = id
         self.nome = nome
