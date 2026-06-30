@@ -7,11 +7,12 @@ from domain.Order.Entity import Order
 class OrderRepository(ABC):
     @abstractmethod
     def save(self, order: Order) -> None:
-        """Persiste a order no mecanismo de armazenamento da implementação.
+        """Persiste a order no mecanismo de armazenamento da
+        implementação.
 
-        Contrato declarado no domínio para que a infraestrutura se submeta a ele
-        (Dependency Inversion). O domínio não conhece banco nem framework; apenas
-        exige esta interface.
+        Contrato declarado no domínio para que a infraestrutura se
+        submeta a ele (Dependency Inversion). O domínio não conhece
+        banco nem framework; apenas exige esta interface.
         """
 
     @abstractmethod
