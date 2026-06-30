@@ -16,8 +16,9 @@ class OrderRepository(ABC):
 
     @abstractmethod
     def find_by_id(self, order_id: str) -> Order | None:
-        """Retorna a order com o id informado, ou None se não existir.
-
-        Parte do contrato de persistência que o domínio impõe à infraestrutura,
-        mantendo o domínio agnóstico de detalhes de armazenamento.
+        """Retorna a order com o id informado, ou None se não
+        existir.
+        Parte do contrato de persistência que o domínio impõe à
+        infraestrutura, mantendo o domínio agnóstico de detalhes
+        de armazenamento.
         """
