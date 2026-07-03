@@ -14,12 +14,12 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "distribuidora.settings")
 
-from apps.dominio import (
+from apps.dominio import (  # noqa: E402
     Volume, CategoriaBebida, Bebida, Lote, Estoque,
     ItemPedido, Pedido, Administrador, Gerente, Requisitante, Estoquista,
     MotivoPedido, StatusPedido, criar_usuario,
 )
-from datetime import date, timedelta
+from datetime import date, timedelta  # noqa: E402
 
 
 # ─── Value Objects ───────────────────────────────────────────
@@ -157,16 +157,28 @@ class TestPedido:
         # Item agora não recebe mais preço unitário
         return ItemPedido("beb-001", "Skol Lata", qtd)
 
-    def test_confirmar_pedido_valido(self):
+    def test_submeter_pedido_valido(self):
         p = self._pedido()
         p.adicionar_item(self._item())
-        p.confirmar()
-        assert p.status == StatusPedido.CONCLUIDO
+        p.submeter()
+        assert p.status == StatusPedido.PENDENTE
 
-    def test_rejeitar_confirmar_sem_itens(self):
+    def test_rejeitar_submeter_sem_itens(self):
         p = self._pedido()
         with pytest.raises(ValueError):
-            p.confirmar()
+            p.submeter()
+
+    def test_ciclo_completo_pedido(self):
+        p = self._pedido()
+        p.adicionar_item(self._item())
+        p.submeter()      # RASCUNHO -> PENDENTE
+        assert p.status == StatusPedido.PENDENTE
+        p.aprovar()       # PENDENTE -> APROVADO
+        assert p.status == StatusPedido.APROVADO
+        p.separar()       # APROVADO -> SEPARADO
+        assert p.status == StatusPedido.SEPARADO
+        p.expedir()       # SEPARADO -> EXPEDIDO
+        assert p.status == StatusPedido.EXPEDIDO
 
     def test_cancelar_pedido_em_rascunho(self):
         p = self._pedido()
@@ -174,9 +186,34 @@ class TestPedido:
         p.cancelar()
         assert p.status == StatusPedido.CANCELADO
 
-    def test_proibir_adicionar_item_em_pedido_concluido(self):
+    def test_cancelar_pedido_em_pendente(self):
         p = self._pedido()
         p.adicionar_item(self._item())
-        p.confirmar()
+        p.submeter()
+        p.cancelar()
+        assert p.status == StatusPedido.CANCELADO
+
+    def test_proibir_adicionar_item_fora_do_rascunho(self):
+        p = self._pedido()
+        p.adicionar_item(self._item())
+        p.submeter()
         with pytest.raises(ValueError):
             p.adicionar_item(self._item(1))
+
+    def test_transicoes_invalidas(self):
+        p = self._pedido()
+        p.adicionar_item(self._item())
+        
+        # Não pode aprovar direto sem submeter
+        with pytest.raises(ValueError):
+            p.aprovar()
+            
+        p.submeter()
+        # Não pode separar sem aprovar
+        with pytest.raises(ValueError):
+            p.separar()
+            
+        p.aprovar()
+        # Não pode expedir sem separar
+        with pytest.raises(ValueError):
+            p.expedir()
