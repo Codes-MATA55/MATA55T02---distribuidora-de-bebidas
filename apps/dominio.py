@@ -21,7 +21,7 @@ Referências:
 """
 
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date, datetime
 from enum import Enum
 from typing import Optional
@@ -621,7 +621,7 @@ class Estoque:
 
     @property
     def quantidade_total(self) -> int:
-        return sum(l.quantidade_disponivel for l in self.__lotes if not l.esta_vencido)
+        return sum(lote.quantidade_disponivel for lote in self.__lotes if not lote.esta_vencido)
 
     @property
     def quantidade_disponivel(self) -> int:
@@ -650,8 +650,8 @@ class Estoque:
             )
         restante = quantidade
         lotes_validos = sorted(
-            [l for l in self.__lotes if not l.esta_vencido and l.quantidade_disponivel > 0],
-            key=lambda l: l.data_validade
+            [lote for lote in self.__lotes if not lote.esta_vencido and lote.quantidade_disponivel > 0],
+            key=lambda lote: lote.data_validade
         )
         for lote in lotes_validos:
             if restante == 0:

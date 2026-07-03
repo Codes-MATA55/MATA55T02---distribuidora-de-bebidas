@@ -7,8 +7,6 @@ Referência: Evans DDD p.106 — Application Service
 =============================================================
 """
 
-from datetime import datetime
-
 from apps.dominio import (
     Bebida, CategoriaBebida, ItemPedido, Lote,
     Pedido, UsuarioBase, criar_usuario, MotivoPedido, StatusPedido
@@ -251,7 +249,7 @@ class ServicoEstoque:
         self._exigir("estoque:adicionar", solicitante)
         from datetime import date as dt
         lotes = self._repo_estoque.listar_lotes()
-        lote = next((l for l in lotes if l.id == lote_id), None)
+        lote = next((lote_obj for lote_obj in lotes if lote_obj.id == lote_id), None)
         if not lote:
             raise ValueError("Lote não encontrado.")
         lote.atualizar(

@@ -253,24 +253,24 @@ class RepositorioEstoque:
         quantidade_reservada = resumo.get("quantidade_reservada", 0) if resumo else 0
 
         estoque = Estoque(bebida_id, quantidade_reservada=quantidade_reservada)
-        for l in db["lotes"]:
-            if l["bebida_id"] == bebida_id:
-                estoque.adicionar_lote(self._dict_para_lote(l))
+        for lote_dict in db["lotes"]:
+            if lote_dict["bebida_id"] == bebida_id:
+                estoque.adicionar_lote(self._dict_para_lote(lote_dict))
         return estoque
 
     def listar_lotes(self, bebida_id: str = None) -> list[Lote]:
         db = _ler_db()
         lotes = db["lotes"]
         if bebida_id:
-            lotes = [l for l in lotes if l["bebida_id"] == bebida_id]
-        return [self._dict_para_lote(l) for l in lotes]
+            lotes = [lote_dict for lote_dict in lotes if lote_dict["bebida_id"] == bebida_id]
+        return [self._dict_para_lote(lote_dict) for lote_dict in lotes]
 
     def salvar_lote(self, lote: Lote):
         db = _ler_db()
         dados = lote.para_dict()
-        for l in db["lotes"]:
-            if l["id"] == lote.id:
-                l.update(dados)
+        for lote_dict in db["lotes"]:
+            if lote_dict["id"] == lote.id:
+                lote_dict.update(dados)
                 _salvar_db(db)
                 return
         db["lotes"].append(dados)
@@ -279,7 +279,7 @@ class RepositorioEstoque:
     def remover_lote(self, id: str) -> bool:
         db = _ler_db()
         antes = len(db["lotes"])
-        db["lotes"] = [l for l in db["lotes"] if l["id"] != id]
+        db["lotes"] = [lote_dict for lote_dict in db["lotes"] if lote_dict["id"] != id]
         if len(db["lotes"]) < antes:
             _salvar_db(db)
             return True

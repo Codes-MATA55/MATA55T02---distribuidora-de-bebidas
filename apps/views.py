@@ -417,7 +417,7 @@ _OPENAPI_SPEC = {
         "version": "1.0.0",
         "description": "API REST para gerenciamento logístico de bebidas em alta escala",
     },
-    "servers": [{"url": "http://localhost:8000"}],
+    "servers": [{"url": "http://localhost:8000"}, {"url": "http://127.0.0.1:8000"}],
     "components": {
         "securitySchemes": {
             "bearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}
