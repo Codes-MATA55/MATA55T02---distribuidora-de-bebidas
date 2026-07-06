@@ -61,11 +61,24 @@ class TestCategoriaBebida:
 
 class TestBebida:
     def _bebida(self):
-        return Bebida("Skol Lata", "cat-001", "Skol", 350, 3.50, "AmBev", 4.7)
+        # Assinatura real: nome, categoria_id, marca, volume_ml, fornecedor, teor_alcoolico
+        # (versão anterior deste teste passava um preço que não existe mais no construtor,
+        # e o teste seguia passando silenciosamente com dados embaralhados)
+        return Bebida(
+            nome="Skol Lata",
+            categoria_id="cat-001",
+            marca="Skol",
+            volume_ml=350,
+            fornecedor="AmBev",
+            teor_alcoolico=4.7,
+        )
 
     def test_cria(self):
         b = self._bebida()
         assert b.nome == "Skol Lata"
+        assert b.fornecedor == "AmBev"
+        assert b.teor_alcoolico == 4.7
+        assert b.volume.ml == 350
 
     def test_desativar(self):
         b = self._bebida()

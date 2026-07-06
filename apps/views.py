@@ -491,7 +491,11 @@ _OPENAPI_SPEC = {
                 "type": "object",
                 "required": ["motivo", "itens"],
                 "properties": {
-                    "motivo": {"type": "string", "enum": ["abastecimento_interno", "transferencia_filial", "avaria_perda", "remanejo"], "example": "abastecimento_interno"},
+                    "motivo": {
+                        "type": "string",
+                        "enum": ["abastecimento_interno", "transferencia_filial", "avaria_perda", "remanejo"],
+                        "example": "abastecimento_interno",
+                    },
                     "itens": {
                         "type": "array",
                         "items": {
@@ -514,52 +518,89 @@ _OPENAPI_SPEC = {
                 "tags": ["Auth"],
                 "summary": "Login",
                 "security": [],
-                "requestBody": {"required": True, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/LoginInput"}}}},
-                "responses": {"200": {"description": "Token JWT gerado"}, "401": {"description": "Credenciais inválidas"}},
+                "requestBody": {
+                    "required": True,
+                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/LoginInput"}}},
+                },
+                "responses": {
+                    "200": {"description": "Token JWT gerado"},
+                    "401": {"description": "Credenciais inválidas"},
+                },
             }
         },
         "/api/auth/perfil/": {
             "get": {
                 "tags": ["Auth"],
                 "summary": "Perfil do usuário logado",
-                "responses": {"200": {"description": "Dados do usuário"}, "401": {"description": "Não autenticado"}},
+                "responses": {
+                    "200": {"description": "Dados do usuário"},
+                    "401": {"description": "Não autenticado"},
+                },
             }
         },
         "/api/usuarios/": {
-            "get": {"tags": ["Usuários"], "summary": "Listar usuários", "responses": {"200": {"description": "Lista de usuários"}}},
+            "get": {
+                "tags": ["Usuários"],
+                "summary": "Listar usuários",
+                "responses": {"200": {"description": "Lista de usuários"}},
+            },
             "post": {
                 "tags": ["Usuários"],
                 "summary": "Criar usuário",
-                "requestBody": {"required": True, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/UsuarioInput"}}}},
+                "requestBody": {
+                    "required": True,
+                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/UsuarioInput"}}},
+                },
                 "responses": {"201": {"description": "Usuário criado"}},
             },
         },
         "/api/categorias/": {
-            "get": {"tags": ["Categorias"], "summary": "Listar categorias", "responses": {"200": {"description": "Lista de categorias"}}},
+            "get": {
+                "tags": ["Categorias"],
+                "summary": "Listar categorias",
+                "responses": {"200": {"description": "Lista de categorias"}},
+            },
             "post": {
                 "tags": ["Categorias"],
                 "summary": "Criar categoria",
-                "requestBody": {"required": True, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CategoriaInput"}}}},
+                "requestBody": {
+                    "required": True,
+                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CategoriaInput"}}},
+                },
                 "responses": {"201": {"description": "Categoria criada"}},
             },
         },
         "/api/bebidas/": {
-            "get": {"tags": ["Bebidas"], "summary": "Listar bebidas", "responses": {"200": {"description": "Lista de bebidas"}}},
+            "get": {
+                "tags": ["Bebidas"],
+                "summary": "Listar bebidas",
+                "responses": {"200": {"description": "Lista de bebidas"}},
+            },
             "post": {
                 "tags": ["Bebidas"],
                 "summary": "Criar bebida",
-                "requestBody": {"required": True, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BebidaInput"}}}},
+                "requestBody": {
+                    "required": True,
+                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BebidaInput"}}},
+                },
                 "responses": {"201": {"description": "Bebida criada"}},
             },
         },
         "/api/estoque/": {
-            "get": {"tags": ["Estoque"], "summary": "Listar estoque consolidado", "responses": {"200": {"description": "Estoque de bebidas"}}}
+            "get": {
+                "tags": ["Estoque"],
+                "summary": "Listar estoque consolidado",
+                "responses": {"200": {"description": "Estoque de bebidas"}},
+            }
         },
         "/api/estoque/lotes/": {
             "post": {
                 "tags": ["Estoque"],
                 "summary": "Adicionar lote físico",
-                "requestBody": {"required": True, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/LoteInput"}}}},
+                "requestBody": {
+                    "required": True,
+                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/LoteInput"}}},
+                },
                 "responses": {"201": {"description": "Lote registrado"}},
             }
         },
@@ -597,7 +638,10 @@ _OPENAPI_SPEC = {
             "post": {
                 "tags": ["Pedidos"],
                 "summary": "Aprovar requisição pendente",
-                "description": "Libera a requisição para separação física. Não altera o estoque — a reserva continua ativa. Transiciona de 'pendente' para 'aprovado'.",
+                "description": (
+                    "Libera a requisição para separação física. Não altera o estoque — "
+                    "a reserva continua ativa. Transiciona de 'pendente' para 'aprovado'."
+                ),
                 "parameters": [{"name": "pedido_id", "in": "path", "required": True, "schema": {"type": "string"}}],
                 "responses": {
                     "200": {"description": "Requisição aprovada, pronta para separação"},
@@ -609,7 +653,10 @@ _OPENAPI_SPEC = {
             "post": {
                 "tags": ["Pedidos"],
                 "summary": "Registrar separação física dos itens",
-                "description": "Executa a baixa real nos lotes (FEFO) e libera a reserva. Transiciona de 'aprovado' para 'separado'.",
+                "description": (
+                    "Executa a baixa real nos lotes (FEFO) e libera a reserva. "
+                    "Transiciona de 'aprovado' para 'separado'."
+                ),
                 "parameters": [{"name": "pedido_id", "in": "path", "required": True, "schema": {"type": "string"}}],
                 "responses": {
                     "200": {"description": "Separação registrada, estoque baixado"},
@@ -621,7 +668,10 @@ _OPENAPI_SPEC = {
             "post": {
                 "tags": ["Pedidos"],
                 "summary": "Expedir requisição separada",
-                "description": "Registra a saída física das mercadorias do depósito. Só pode ocorrer após separação (status 'separado'). Não altera o estoque.",
+                "description": (
+                    "Registra a saída física das mercadorias do depósito. Só pode ocorrer "
+                    "após separação (status 'separado'). Não altera o estoque."
+                ),
                 "parameters": [{"name": "pedido_id", "in": "path", "required": True, "schema": {"type": "string"}}],
                 "responses": {
                     "200": {"description": "Expedição registrada, pedido com status 'expedido'"},
