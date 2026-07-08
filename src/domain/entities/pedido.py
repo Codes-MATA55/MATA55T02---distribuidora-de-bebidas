@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from domain.value_objects.dinheiro import Money
@@ -13,23 +14,18 @@ class Order:
         },
         "EM PROCESSAMENTO": {
             "SEPARADO",
-            "FINALIZADO",
             "CANCELADO",
             "ATRASADO",
-            "EM TRANSPORTE",
         },
         "SEPARADO": {
-            "FINALIZADO",
-            "CANCELADO",
             "EM TRANSPORTE",
+            "CANCELADO",
         },
         "ATRASADO": {
-            "FINALIZADO",
             "CANCELADO",
         },
         "EM TRANSPORTE": {
             "FINALIZADO",
-            "CANCELADO",
             "ATRASADO",
         },
         "FINALIZADO": set(),
@@ -42,6 +38,8 @@ class Order:
         self.items = items
         self.status = "AGUARDANDO PAGAMENTO"
         self.total = self.calculate_total()
+        self.shipped_at: datetime | None = None
+        self.tracking_code: str | None = None
 
     @property
     def produtos(self) -> List[OrderItem]:
@@ -100,5 +98,10 @@ class Order:
                 f"Não é possível obter a quantidade separada. "
                 f"O pedido está em estado: {self.status}"
             )
+        
+    def confirm_payment(self) -> None:
+        self.update_status("EM PROCESSAMENTO")
 
-        return sum(item.amount for item in self.items)
+    def can_be_separated(self) -> bool:
+        
+        return self.status == "EM PROCESSAMENTO" and bool(self.items)
