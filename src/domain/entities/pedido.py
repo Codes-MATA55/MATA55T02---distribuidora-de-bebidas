@@ -113,4 +113,13 @@ class Order:
             raise ValueError("Pedido não pode ser marcado como separado com itens pendentes")
         self.update_status("SEPARADO")
 
-    
+    def ship(self) -> str:
+        if self.shipped_at is not None:
+            raise ValueError("Pedido já foi expedido")
+        if self.status != "SEPARADO":
+            raise ValueError("Pedido só pode ser expedido após separação total")
+
+        self.tracking_code = self._generate_tracking_code()
+        self.shipped_at = datetime.now()
+        self.update_status("EM TRANSPORTE")
+        return self.tracking_code
