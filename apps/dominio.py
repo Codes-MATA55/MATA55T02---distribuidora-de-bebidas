@@ -664,6 +664,13 @@ class Estoque:
             lote.baixar(baixar_agora)
             restante -= baixar_agora
 
+    def efetivar_saida_reservada(self, quantidade: int):
+        if quantidade <= 0:
+            raise ValueError("Quantidade de saída deve ser positiva.")
+        
+        self.liberar_reserva(quantidade)
+        self.baixar(quantidade)
+        
     def reservar(self, quantidade: int):
         """
         Reserva uma quantidade do estoque para um pedido PENDENTE.
