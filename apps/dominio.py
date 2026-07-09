@@ -761,13 +761,11 @@ class UsuarioBase:
         """Polimorfismo: cada subclasse herda e pode sobrescrever."""
         return permissao in PERMISSOES.get(self._tipo, set())
 
-    def atualizar(self, nome: str = None, tipo: str = None):
+    def atualizar(self, nome: str = None):
         if nome is not None:
             if not nome or len(nome.strip()) < 2:
                 raise ValueError("Nome deve ter ao menos 2 caracteres.")
             self.__nome = nome.strip()
-        if tipo is not None:
-            self._tipo = TipoUsuario(tipo)
 
     def desativar(self):
         self.__ativo = False
