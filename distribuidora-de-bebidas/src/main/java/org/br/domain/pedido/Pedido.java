@@ -1,5 +1,8 @@
 package org.br.domain.pedido;
 
+import org.br.domain.identity.Permissao;
+import org.br.domain.identity.Usuario;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -69,9 +72,25 @@ public class Pedido {
         this.status = StatusPedido.SEPARADO;
     }
 
-    public void expedir() {
+    public void confirmarSeparacao() {
+        separar();
+    }
+
+    public void enviarParaExpedicao() {
 
         if (status != StatusPedido.SEPARADO) {
+            throw new IllegalStateException(
+                    "Somente pedidos separados podem ir para expedição"
+            );
+        }
+
+        this.status = StatusPedido.EM_EXPEDICAO;
+    }
+
+    public void expedir() {
+
+        if (status != StatusPedido.SEPARADO
+                && status != StatusPedido.EM_EXPEDICAO) {
             throw new IllegalStateException(
                     "Somente pedidos separados podem ser expedidos"
             );
@@ -89,5 +108,22 @@ public class Pedido {
         }
 
         this.status = StatusPedido.CANCELADO;
+    }
+
+    public void cancelar(Usuario usuario, String motivo) {
+
+        if (motivo == null || motivo.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Motivo do cancelamento é obrigatório"
+            );
+        }
+
+        if (usuario == null || !usuario.pode(Permissao.CANCELAR_PEDIDO)) {
+            throw new IllegalStateException(
+                    "Usuário não pode cancelar pedido"
+            );
+        }
+
+        cancelar();
     }
 }

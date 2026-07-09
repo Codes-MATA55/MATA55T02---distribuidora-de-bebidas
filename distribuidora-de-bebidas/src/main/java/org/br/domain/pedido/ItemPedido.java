@@ -1,15 +1,19 @@
 package org.br.domain.pedido;
 
-import org.br.domain.estoque.Produto;
+import org.br.shared.valueobject.Quantidade;
 
 import java.util.UUID;
 
 public class ItemPedido {
 
     private final UUID produtoId;
-    private final int quantidade;
+    private final Quantidade quantidade;
 
     public ItemPedido(UUID produtoId, int quantidade) {
+        this(produtoId, new Quantidade(quantidade));
+    }
+
+    public ItemPedido(UUID produtoId, Quantidade quantidade) {
 
         if (produtoId == null) {
             throw new IllegalArgumentException(
@@ -17,9 +21,9 @@ public class ItemPedido {
             );
         }
 
-        if (quantidade <= 0) {
+        if (quantidade == null) {
             throw new IllegalArgumentException(
-                    "Quantidade deve ser maior que zero"
+                    "Quantidade obrigatória"
             );
         }
 
@@ -32,6 +36,10 @@ public class ItemPedido {
     }
 
     public int getQuantidade() {
+        return quantidade.valor();
+    }
+
+    public Quantidade getQuantidadeValueObject() {
         return quantidade;
     }
 }

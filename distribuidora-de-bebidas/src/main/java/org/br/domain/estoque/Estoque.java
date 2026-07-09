@@ -1,5 +1,7 @@
 package org.br.domain.estoque;
 
+import org.br.shared.valueobject.Quantidade;
+
 public class Estoque {
 
     private final Produto produto;
@@ -24,32 +26,40 @@ public class Estoque {
     }
 
     public void reservar(int quantidade) {
+        reservar(new Quantidade(quantidade));
+    }
 
-        if (quantidade <= 0) {
+    public void reservar(Quantidade quantidade) {
+
+        if (quantidade == null) {
             throw new IllegalArgumentException(
-                    "Quantidade deve ser maior que zero"
+                    "Quantidade obrigatória"
             );
         }
 
-        if (quantidadeDisponivel < quantidade) {
+        if (quantidadeDisponivel < quantidade.valor()) {
             throw new IllegalArgumentException(
                     "Estoque insuficiente para o produto "
                             + produto.getNome()
             );
         }
 
-        quantidadeDisponivel -= quantidade;
+        quantidadeDisponivel -= quantidade.valor();
     }
 
     public void adicionar(int quantidade) {
+        adicionar(new Quantidade(quantidade));
+    }
 
-        if (quantidade <= 0) {
+    public void adicionar(Quantidade quantidade) {
+
+        if (quantidade == null) {
             throw new IllegalArgumentException(
-                    "Quantidade deve ser maior que zero"
+                    "Quantidade obrigatória"
             );
         }
 
-        quantidadeDisponivel += quantidade;
+        quantidadeDisponivel += quantidade.valor();
     }
 
     public Produto getProduto() {

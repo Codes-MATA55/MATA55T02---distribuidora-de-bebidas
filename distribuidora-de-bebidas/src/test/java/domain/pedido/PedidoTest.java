@@ -3,10 +3,13 @@ package domain.pedido;
 import org.br.domain.pedido.ItemPedido;
 import org.br.domain.pedido.Pedido;
 import org.br.domain.pedido.StatusPedido;
+import org.br.domain.identity.Cargo;
+import org.br.domain.identity.Usuario;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -319,6 +322,45 @@ class PedidoTest {
         assertThrows(
                 UnsupportedOperationException.class,
                 () -> pedido.getItens().add(mock(ItemPedido.class))
+        );
+    }
+
+    @Test
+    @DisplayName("Deve enviar pedido separado para expedicao")
+    void deveEnviarPedidoSeparadoParaExpedicao() {
+
+        Pedido pedido =
+                new Pedido(List.of(mock(ItemPedido.class)));
+
+        pedido.iniciarSeparacao();
+        pedido.separar();
+        pedido.enviarParaExpedicao();
+
+        assertEquals(
+                StatusPedido.EM_EXPEDICAO,
+                pedido.getStatus()
+        );
+    }
+
+    @Test
+    @DisplayName("Gerente deve cancelar pedido com motivo")
+    void gerenteDeveCancelarPedidoComMotivo() {
+
+        Pedido pedido =
+                new Pedido(List.of(mock(ItemPedido.class)));
+
+        Usuario gerente = new Usuario(
+                UUID.randomUUID(),
+                "Gerente",
+                Cargo.GERENTE_LOGISTICO,
+                true
+        );
+
+        pedido.cancelar(gerente, "Cliente solicitou cancelamento");
+
+        assertEquals(
+                StatusPedido.CANCELADO,
+                pedido.getStatus()
         );
     }
 }

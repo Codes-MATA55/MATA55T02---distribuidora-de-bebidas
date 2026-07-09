@@ -48,7 +48,10 @@ A distribuidora possui várias operações, mas nem todas possuem o mesmo peso e
 
 ### 2.2 Bounded Contexts
 
-Para evitar classes genéricas demais e significados conflitantes, o sistema será dividido em três contextos delimitados.
+Para evitar classes genéricas demais e significados conflitantes, o sistema
+será dividido em três contextos delimitados. No projeto Java, essa separação
+fica representada por pacotes de domínio e classes específicas, sem exigir
+aplicações separadas.
 
 #### Fulfillment Context — Separação e Expedição
 
@@ -61,6 +64,9 @@ Responsável por:
 - ordem de expedição;
 - liberação da carga.
 
+No código Java, este contexto fica em `org.br.domain.pedido` e
+`org.br.domain.expedicao`.
+
 #### Inventory Context — Estoque
 
 Responsável por:
@@ -72,6 +78,8 @@ Responsável por:
 - saídas;
 - disponibilidade física dos produtos.
 
+No código Java, este contexto fica em `org.br.domain.estoque`.
+
 #### Identity Context — Usuários e Hierarquia
 
 Responsável por:
@@ -81,7 +89,11 @@ Responsável por:
 - permissões;
 - decisões de autorização.
 
-> Essa separação não significa criar sistemas separados. No projeto da disciplina, pode ser apenas uma divisão de pacotes/módulos, mantendo baixo acoplamento entre as partes.
+No código Java, este contexto fica em `org.br.domain.identity`.
+
+> Essa separação não significa criar sistemas separados. No projeto da
+> disciplina, pode ser apenas uma divisão de pacotes/módulos, mantendo baixo
+> acoplamento entre as partes.
 
 ### 2.3 Linguagem Ubíqua
 
@@ -152,12 +164,12 @@ Agregados protegem consistência. Objetos internos não devem ser alterados livr
 
 **Exemplos de métodos:**
 
-```python
-pedido.iniciar_separacao(usuario)
-pedido.confirmar_separacao(usuario)
-pedido.enviar_para_expedicao(usuario)
-pedido.marcar_como_expedido(usuario)
-pedido.cancelar(usuario, motivo)
+```java
+pedido.iniciarSeparacao(usuario);
+pedido.confirmarSeparacao(usuario);
+pedido.enviarParaExpedicao(usuario);
+pedido.marcarComoExpedido(usuario);
+pedido.cancelar(usuario, motivo);
 ```
 
 #### Agregado EstoqueLote
@@ -178,10 +190,10 @@ pedido.cancelar(usuario, motivo)
 
 **Exemplos de métodos:**
 
-```python
-lote.reservar(quantidade)
-lote.confirmar_saida(quantidade)
-lote.registrar_entrada(quantidade)
+```java
+lote.reservar(quantidade);
+lote.confirmarSaida(quantidade);
+lote.registrarEntrada(quantidade);
 ```
 
 #### Agregado OrdemExpedicao
@@ -250,10 +262,10 @@ Mesmo assim, o domínio deve depender de interfaces, não de detalhes de infraes
 
 | Interface | Implementação em memória |
 |---|---|
-| `IPedidoRepository` | `PedidoRepositoryInMemory` |
-| `IEstoqueRepository` | `EstoqueRepositoryInMemory` |
-| `IUsuarioRepository` | `UsuarioRepositoryInMemory` |
-| `IOrdemExpedicaoRepository` | `OrdemExpedicaoRepositoryInMemory` |
+| `PedidoRepository` | `PedidoRepositoryMock` |
+| `EstoqueRepository` | `EstoqueRepositoryMock` |
+| `ExpedicaoRepository` | `ExpedicaoRepositoryMock` |
+| `UsuarioRepository` | `UsuarioRepositoryMock` |
 
 Isso permite testar as regras do domínio sem depender de banco, API externa ou framework.
 
@@ -308,22 +320,22 @@ O modelo não deve permitir alteração livre de status ou quantidade. A regra d
 
 ### Exemplo ruim
 
-```python
-pedido.status = "EXPEDIDO"
-estoque.quantidade = estoque.quantidade - 50000
+```java
+pedido.setStatus("EXPEDIDO");
+estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() - 50000);
 ```
 
 ### Exemplo melhor
 
-```python
-pedido.marcar_como_expedido(usuario)
-lote.confirmar_saida(Quantidade(50000))
+```java
+pedido.expedir();
+estoque.reservar(new Quantidade(50000));
 ```
 
 No segundo exemplo, cada objeto valida sua própria regra:
 
 - `Pedido` valida o fluxo de estados e permissão;
-- `LoteBebida` valida a disponibilidade do estoque.
+- `Estoque` valida a disponibilidade e a quantidade informada.
 
 ---
 
@@ -332,55 +344,56 @@ No segundo exemplo, cada objeto valida sua própria regra:
 A estrutura abaixo é simples e suficiente para organizar o projeto sem deixar a arquitetura pesada.
 
 ```text
-src/
-├── fulfillment/
-│   ├── domain/
-│   │   ├── pedido.py
-│   │   ├── item_pedido.py
-│   │   ├── ordem_expedicao.py
-│   │   └── estado_pedido.py
-│   ├── application/
-│   │   └── servico_de_expedicao.py
-│   └── infrastructure/
-│       └── pedido_repository_in_memory.py
-│
-├── inventory/
-│   ├── domain/
-│   │   ├── lote_bebida.py
-│   │   ├── movimentacao_estoque.py
-│   │   └── reserva_estoque.py
-│   └── infrastructure/
-│       └── estoque_repository_in_memory.py
-│
-├── identity/
-│   ├── domain/
-│   │   ├── usuario.py
-│   │   └── cargo.py
-│   └── infrastructure/
-│       └── usuario_repository_in_memory.py
-│
-└── shared/
-    ├── value_objects/
-    │   ├── quantidade.py
-    │   └── sku.py
-    └── events/
-        └── event_bus.py
+distribuidora-de-bebidas/
+|-- pom.xml
+|-- src/main/java/org/br/
+|   |-- DistribuidoraApplication.java
+|   |-- api/
+|   |   `-- PedidoController.java
+|   |-- application/
+|   |   |-- dto/
+|   |   |-- mapper/
+|   |   `-- usecase/
+|   |-- domain/
+|   |   |-- estoque/
+|   |   |-- expedicao/
+|   |   |-- identity/
+|   |   `-- pedido/
+|   |-- infrastructure/
+|   |   `-- repository/
+|   `-- shared/
+|       |-- event/
+|       |   |-- DomainEvent.java
+|       |   `-- EventBus.java
+|       `-- valueobject/
+|           `-- Quantidade.java
+`-- src/test/java/
+    |-- api/
+    |-- application/usecase/
+    |-- domain/
+    `-- shared/
 ```
+
+Nessa versão Java, a camada compartilhada vira código real em
+`org.br.shared.valueobject.Quantidade` e `org.br.shared.event.EventBus`.
 
 ---
 
 ## 8. Justificativa técnica da linguagem
 
-A linguagem sugerida para implementação é **Python**.
+A linguagem utilizada na implementação é **Java 21**, com
+**Spring Boot 3.5.3**, **Maven**, **JUnit 5** e **Mockito**.
 
-Embora Python seja dinâmico e flexível, é possível aplicar Orientação a Objetos e DDD com disciplina arquitetural.
+Java favorece a aplicação de Orientação a Objetos e DDD por meio de classes de
+domínio com comportamento, interfaces para contratos de repositório, enums para
+estados e tipos, e testes automatizados para proteger as regras de negócio.
 
 ### Recomendações
 
-- Usar `dataclasses` com `frozen=True` para Value Objects imutáveis.
+- Usar classes, records ou objetos imutáveis para Value Objects.
 - Evitar setters livres para estado e quantidade.
 - Usar métodos de negócio com nomes claros.
-- Separar domínio, aplicação e infraestrutura em módulos simples.
+- Separar domínio, aplicação, API e infraestrutura em pacotes simples.
 - Testar regras de negócio diretamente nas classes de domínio.
 - Usar repositórios in-memory para simular persistência sem banco de dados.
 
