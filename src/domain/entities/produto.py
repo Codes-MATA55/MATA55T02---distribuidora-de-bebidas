@@ -53,7 +53,7 @@ class Product:
 
     @property
     def barcode(self):
-        return self.barcode
+        return self._barcode
 
     @property
     def price(self):
