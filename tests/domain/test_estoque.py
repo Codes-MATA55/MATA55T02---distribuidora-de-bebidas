@@ -28,7 +28,7 @@ class TestStock(unittest.TestCase):
         self.assertEqual(movimentacao.amount, 20)
 
     def test_stock_oubound_succeeds(self):
-        movimentacao = StockMovement(
+        StockMovement(
             id=2,
             product=self.product,
             type=MovementType.OUTBOUND,

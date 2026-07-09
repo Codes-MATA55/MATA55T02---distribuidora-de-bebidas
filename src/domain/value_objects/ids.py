@@ -10,9 +10,25 @@ class EntityId:
         return str(self.value)
 
 
-class PedidoId(EntityId): pass
-class FornecedorId(EntityId): pass
-class BatchId(EntityId): pass
-class ProdutoId(EntityId): pass
-class MovimentacaoId(EntityId): pass
-class ClienteId(EntityId): pass
+class PedidoId(EntityId):
+    pass
+
+
+class FornecedorId(EntityId):
+    pass
+
+
+class BatchId(EntityId):
+    pass
+
+
+class ProdutoId(EntityId):
+    pass
+
+
+class MovimentacaoId(EntityId):
+    pass
+
+
+class ClienteId(EntityId):
+    pass
