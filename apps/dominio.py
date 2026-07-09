@@ -531,8 +531,11 @@ class Lote:
         
         #Proteção estrita da Invariante de Negócio
         if quantidade_disponivel is not None and quantidade_disponivel > quantidade:
-            raise ValueError(f"Invariante corrompida: Disponível ({quantidade_disponivel}) excede total físico ({quantidade}).")
-
+            raise ValueError(
+                f"Invariante corrompida: Disponível ({quantidade_disponivel}) "
+                f"excede total físico ({quantidade})."
+            )
+        
         self.__id = id or f"lot-{uuid.uuid4().hex[:8]}"
         self.__bebida_id = bebida_id
         self.__quantidade = quantidade
@@ -644,7 +647,7 @@ class Estoque:
     def adicionar_lote(self, lote: Lote):
         if lote.bebida_id != self.__bebida_id:
             raise ValueError("Lote não pertence a esta bebida.")
-        bisect.insort(self.__lotes, lote, key=lambda l: l.data_validade)
+        bisect.insort(self.__lotes, lote, key=lambda item: item.data_validade)
 
     def baixar(self, quantidade: int):
         if quantidade > self.quantidade_disponivel:
