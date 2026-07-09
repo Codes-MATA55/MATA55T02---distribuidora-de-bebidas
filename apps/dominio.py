@@ -527,6 +527,10 @@ class Lote:
             raise ValueError("Quantidade do lote deve ser positiva.")
         if data_validade <= data_fabricacao:
             raise ValueError("Data de validade deve ser posterior à fabricação.")
+        
+        #Proteção estrita da Invariante de Negócio
+        if quantidade_disponivel is not None and quantidade_disponivel > quantidade:
+            raise ValueError(f"Invariante corrompida: Disponível ({quantidade_disponivel}) excede total físico ({quantidade}).")
 
         self.__id = id or f"lot-{uuid.uuid4().hex[:8]}"
         self.__bebida_id = bebida_id
