@@ -2,7 +2,7 @@
 
 Projeto academico da disciplina de Orientacao a Objetos para modelar o dominio de uma distribuidora de bebidas em alta escala.
 
-Autor: Renato Marcelo
+Autor: RENATO MARCELO RAMOS SOUZA DOS SANTOS
 
 ## Objetivo
 
