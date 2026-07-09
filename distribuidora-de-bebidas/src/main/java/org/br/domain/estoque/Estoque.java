@@ -1,5 +1,4 @@
 package org.br.domain.estoque;
-
 import org.br.shared.valueobject.Quantidade;
 
 public class Estoque {
