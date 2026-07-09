@@ -78,10 +78,10 @@ class Order:
         self.remove_item_by_product(product_id)
 
     def cancel_order(self):
-        self.status = "CANCELADO"
+        self.update_status("CANCELADO")
 
     def end_order(self):
-        self.status = "FINALIZADO"
+        self.update_status("FINALIZADO")
 
     def get_separate_financial_total(self) -> Money:
         if self.status not in ["SEPARADO", "FINALIZADO"]:
