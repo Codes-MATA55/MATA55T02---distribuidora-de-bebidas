@@ -28,6 +28,7 @@ from typing import Optional
 import uuid
 import bisect
 
+NAO_ALTERADO = object()
 # ─────────────────────────────────────────────────────────────
 # ENUMERAÇÕES — tipagem forte no domínio (sem strings mágicas)
 # ─────────────────────────────────────────────────────────────
@@ -272,24 +273,24 @@ class Bebida:
 
     def atualizar(
         self,
-        nome: str = None,
-        marca: str = None,
-        volume_ml: int = None,
-        teor_alcoolico: float = None,
-        fornecedor: str = None,
-        categoria_id: str = None,
+        nome: str = NAO_ALTERADO,
+        marca: str = NAO_ALTERADO,
+        volume_ml: int = NAO_ALTERADO,
+        teor_alcoolico: float = NAO_ALTERADO, #aceita None explicitamente
+        fornecedor: str = NAO_ALTERADO,
+        categoria_id: str = NAO_ALTERADO,
     ):
-        if nome is not None:
+        if nome is not NAO_ALTERADO:
             self.__nome = self.__validar_nome(nome)
-        if marca is not None:
+        if marca is not NAO_ALTERADO:
             self.__marca = marca
-        if volume_ml is not None:
+        if volume_ml is not NAO_ALTERADO:
             self.__volume = Volume(volume_ml)
-        if teor_alcoolico is not None:
+        if teor_alcoolico is not NAO_ALTERADO:
             self.__teor_alcoolico = teor_alcoolico
-        if fornecedor is not None:
+        if fornecedor is not NAO_ALTERADO:
             self.__fornecedor = fornecedor
-        if categoria_id is not None:
+        if categoria_id is not NAO_ALTERADO:
             self.__categoria_id = categoria_id
         self.__atualizado_em = datetime.now()
 
