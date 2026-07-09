@@ -26,7 +26,7 @@ from datetime import date, datetime
 from enum import Enum
 from typing import Optional
 import uuid
-
+import bisect
 
 # ─────────────────────────────────────────────────────────────
 # ENUMERAÇÕES — tipagem forte no domínio (sem strings mágicas)
@@ -643,26 +643,23 @@ class Estoque:
     def adicionar_lote(self, lote: Lote):
         if lote.bebida_id != self.__bebida_id:
             raise ValueError("Lote não pertence a esta bebida.")
-        self.__lotes.append(lote)
+        bisect.insort(self.__lotes, lote, key=lambda l: l.data_validade)
 
     def baixar(self, quantidade: int):
-        """Baixa do estoque respeitando FEFO (First Expired, First Out)."""
         if quantidade > self.quantidade_disponivel:
             raise ValueError(
                 f"Estoque insuficiente. Disponível: {self.quantidade_disponivel}, "
                 f"Solicitado: {quantidade}"
             )
         restante = quantidade
-        lotes_validos = sorted(
-            [lote for lote in self.__lotes if not lote.esta_vencido and lote.quantidade_disponivel > 0],
-            key=lambda lote: lote.data_validade
-        )
-        for lote in lotes_validos:
+        
+        for lote in self.__lotes:
             if restante == 0:
                 break
-            baixar_agora = min(restante, lote.quantidade_disponivel)
-            lote.baixar(baixar_agora)
-            restante -= baixar_agora
+            if not lote.esta_vencido and lote.quantidade_disponivel > 0:
+                baixar_agora = min(restante, lote.quantidade_disponivel)
+                lote.baixar(baixar_agora)
+                restante -= baixar_agora
 
     def efetivar_saida_reservada(self, quantidade: int):
         if quantidade <= 0:
@@ -670,7 +667,7 @@ class Estoque:
         
         self.liberar_reserva(quantidade)
         self.baixar(quantidade)
-        
+
     def reservar(self, quantidade: int):
         """
         Reserva uma quantidade do estoque para um pedido PENDENTE.
