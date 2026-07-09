@@ -105,3 +105,12 @@ class Order:
     def can_be_separated(self) -> bool:
         
         return self.status == "EM PROCESSAMENTO" and bool(self.items)
+    
+    def mark_as_separated(self) -> None:
+        if not self.items:
+            raise ValueError("Pedido sem itens não pode ser separado")
+        if not all(item.is_fully_separated() for item in self.items):
+            raise ValueError("Pedido não pode ser marcado como separado com itens pendentes")
+        self.update_status("SEPARADO")
+
+    
