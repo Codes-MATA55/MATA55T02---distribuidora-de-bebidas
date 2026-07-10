@@ -223,7 +223,7 @@ class Bebida:
         self.__categoria_id = categoria_id
         self.__marca = marca
         self.__volume = Volume(volume_ml)                  # Value Object
-        self.__teor_alcoolico = teor_alcoolico
+        self.__teor_alcoolico = self.__validar_teor_alcoolico(teor_alcoolico)
         self.__fornecedor = fornecedor
         self.__ativo = ativo
         self.__criado_em = criado_em or datetime.now()
@@ -234,6 +234,13 @@ class Bebida:
         if not nome or len(nome.strip()) < 2:
             raise ValueError("Nome da bebida deve ter ao menos 2 caracteres.")
         return nome.strip()
+    
+    @staticmethod
+    def __validar_teor_alcoolico(teor: Optional[float]) -> Optional[float]:
+        if teor is not None:
+            if teor < 0.0 or teor > 100.0:
+                raise ValueError("O teor alcoólico deve estar entre 0.0% e 100.0%")
+        return teor
 
     @property
     def id(self) -> str:
@@ -287,7 +294,7 @@ class Bebida:
         if volume_ml is not NAO_ALTERADO:
             self.__volume = Volume(volume_ml)
         if teor_alcoolico is not NAO_ALTERADO:
-            self.__teor_alcoolico = teor_alcoolico
+            self.__teor_alcoolico = self.__validar_teor_alcoolico(teor_alcoolico)
         if fornecedor is not NAO_ALTERADO:
             self.__fornecedor = fornecedor
         if categoria_id is not NAO_ALTERADO:
