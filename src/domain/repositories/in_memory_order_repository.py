@@ -1,10 +1,5 @@
 from domain.entities.pedido import Order
 
-
-# ==================
-# Atividade Avaliativa 1 : Commit 6 (Implementar repository simples)
-# InMemoryOrderRepository stores order snapshots for tests and demos without using a database.
-# ==================
 class InMemoryOrderRepository:
     def __init__(self) -> None:
         self._orders: dict[str, dict] = {}
@@ -18,4 +13,3 @@ class InMemoryOrderRepository:
 
     def list_all(self) -> list[dict]:
         return [dict(order) for order in self._orders.values()]
-# ==================
