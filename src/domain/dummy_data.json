@@ -1,0 +1,26 @@
+{
+  "products": [
+    {
+      "id": "P-JUICE-001",
+      "brand": "Fresh",
+      "name": "Orange Juice 1L",
+      "description": "Whole orange juice bottle",
+      "barcode": "7891234567890",
+      "price": 6.5,
+      "supplier": "Fornecedor Mockado",
+      "category": "SUCO"
+    }
+  ],
+  "batches": [
+    {
+      "initial_amount": 200,
+      "expiration_date": "2027-12-31"
+    }
+  ],
+  "orders": [
+    {
+      "amount": 120,
+      "unit_price": "6,50"
+    }
+  ]
+}

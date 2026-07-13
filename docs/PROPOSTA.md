@@ -243,8 +243,6 @@ A solução evita modelo anêmico pelas seguintes decisões:
 6. Persistência JSON fica atrás de repositórios, impedindo que arquivos decidam regra de domínio.
 7. Políticas variáveis, como FEFO/LIFO, são injetadas por composição, não espalhadas em condicionais.
 
-Ponto de atenção futuro: `User`, `Role`, `Brand` e `Category` ainda estão simples em `main.py`. Eles podem evoluir para entidades de cadastro caso o escopo de hierarquia de usuários seja aprofundado.
-
 ---
 
 ## 6. Linguagem do negócio no código
@@ -278,7 +276,7 @@ A regra de nomenclatura adotada é: nomes em inglês no código, mas com corresp
 
 A evolução recomendada para a entrega final é:
 
-1. transformar `User` e `Role` em entidades reais dentro de `src/domain/entities/`, se a hierarquia de usuário for cobrada com mais profundidade;
+1. transformar `User` e `Role` em entidades reais.
 2. criar política de autorização para ações críticas, como expedir pedido e cancelar pedido;
 3. permitir múltiplos produtos por pedido no `OrderFactory` a partir do JSON;
 4. criar repositórios simples para produtos e estoque, se o volume de dummy data crescer;

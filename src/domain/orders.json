@@ -1,0 +1,18 @@
+[
+  {
+    "id": "a53d0fc1-d07b-46ca-b37f-d5043cc1c332",
+    "client_id": "a2174601-517b-4b61-8b8a-f034bec153b9",
+    "status": "EM TRANSPORTE",
+    "total": "780,00",
+    "items": [
+      {
+        "product_id": "P-JUICE-001",
+        "amount": 120,
+        "unit_price": "6,50",
+        "separated_amount": 120
+      }
+    ],
+    "shipped_at": "2026-07-08T19:36:36.204617",
+    "tracking_code": "TRK-A53D0FC1-A99F25"
+  }
+]
