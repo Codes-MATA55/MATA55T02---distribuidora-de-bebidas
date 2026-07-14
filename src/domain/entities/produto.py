@@ -100,3 +100,32 @@ class Product:
             raise ValueError("Descrição não pode ser vazia")
 
         self._description = new_description.strip()
+
+    def classify_as(self, category: BeverageCategory | str) -> None:
+        self._category = self._normalize_category(category)
+
+    def is_from_category(self, category: BeverageCategory | str) -> bool:
+        return self._category == self._normalize_category(category)
+
+    def _normalize_category(self, category: BeverageCategory | str | None):
+        if category is None:
+            return None
+        if isinstance(category, BeverageCategory):
+            return category
+        for item in BeverageCategory:
+            if str(category).upper() in {item.name, item.value}:
+                return item
+        raise ValueError("Categoria de bebida inválida")
+    
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "brand": self.brand,
+            "name": self.name,
+            "description": self.description,
+            "barcode": self.barcode,
+            "price": self.price,
+            "amount_stock": self.amount_stock,
+            "supplier": self.supplier,
+            "category": self.category.value if self.category else None,
+        }
