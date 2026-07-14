@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
 from uuid import uuid4
-
+from typing import Optional
 
 class TipoMovimentacao(Enum):
     ENTRADA = auto()
@@ -19,13 +19,17 @@ class Movimentacao:
     tipo: TipoMovimentacao
     quantidade: int
     motivo: str
+    pedido_id: Optional[str] = None
     id: str = field(default_factory=lambda: str(uuid4()))
     timestamp: datetime = field(default_factory=datetime.now)
 
     def __str__(self) -> str:
         tipo_str = "ENTRADA" if self.tipo == TipoMovimentacao.ENTRADA else "SAÍDA"
-        return (
+        base_str = (
             f"[{self.timestamp:%Y-%m-%d %H:%M:%S}] {tipo_str} | "
             f"Produto: {self.produto_id} | Qtd: {self.quantidade} | "
             f"Motivo: {self.motivo}"
         )
+        if self.pedido_id:
+            base_str += f" | Pedido: {self.pedido_id}"
+        return base_str

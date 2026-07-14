@@ -35,7 +35,7 @@ class Estoque:
         self._saldos[produto_id] += quantidade
         self._registrar_movimentacao(produto_id, TipoMovimentacao.ENTRADA, quantidade, motivo)
 
-    def saida(self, produto_id: str, quantidade: int, motivo: str = "Pedido") -> None:
+    def saida(self, produto_id: str, quantidade: int, pedido_id: Optional[str] = None, motivo: str = "Pedido") -> None:
         """Registra a saída de produtos do estoque."""
         if quantidade <= 0:
             raise ValueError(f"Quantidade de saída deve ser positiva. Recebido: {quantidade}")
@@ -44,7 +44,7 @@ class Estoque:
         if disponivel < quantidade:
             raise EstoqueInsuficienteException(produto_id, quantidade, disponivel)
         self._saldos[produto_id] -= quantidade
-        self._registrar_movimentacao(produto_id, TipoMovimentacao.SAIDA, quantidade, motivo)
+        self._registrar_movimentacao(produto_id, TipoMovimentacao.SAIDA, quantidade, motivo, pedido_id)
 
     def consultar_saldo(self, produto_id: str) -> int:
         """Retorna a quantidade disponível de um produto."""
@@ -90,11 +90,13 @@ class Estoque:
         tipo: TipoMovimentacao,
         quantidade: int,
         motivo: str,
+        pedido_id: Optional[str] = None,
     ) -> None:
         mov = Movimentacao(
             produto_id=produto_id,
             tipo=tipo,
             quantidade=quantidade,
             motivo=motivo,
+            pedido_id=pedido_id,
         )
         self._historico.append(mov)
