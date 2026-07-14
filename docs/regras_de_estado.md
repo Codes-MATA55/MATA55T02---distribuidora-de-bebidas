@@ -48,17 +48,13 @@ Essas regras estão cobertas em `tests/domain/test_transicoes_invalidas.py`.
 
 Arquivo principal:
 
-```text
 src/domain/entities/pedido.py
-```
 
 Métodos principais:
 
-```text
 Order.update_status(...)
 Order.confirm_payment()
 Order.mark_as_separated()
 Order.ship()
-```
 
 Decisão: `OrderWorkflow` coordena o fluxo, mas quem protege as transições é `Order`.
