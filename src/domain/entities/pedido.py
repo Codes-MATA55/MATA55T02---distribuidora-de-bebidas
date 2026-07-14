@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List
+from uuid import uuid4
 
 from domain.value_objects.dinheiro import Money
 from domain.value_objects.ids import ClienteId, PedidoId
@@ -61,7 +62,15 @@ class Order:
             raise ValueError(f"Não é permitido mudar de {current_status} para {new_status}")
         self.status = new_status
 
+    def _ensure_items_can_change(self) -> None:
+        if self.status != "AGUARDANDO PAGAMENTO":
+            raise ValueError("Order items can only be changed before payment confirmation")
+
+    def is_terminal(self) -> bool:
+        return self.status in {"FINALIZADO", "CANCELADO"}
+
     def add_item(self, order_item: OrderItem):
+        self._ensure_items_can_change()
         if not isinstance(order_item, OrderItem):
             raise ValueError("Item inválido")
         self.items.append(order_item)
@@ -71,6 +80,7 @@ class Order:
         self.add_item(order_item)
 
     def remove_item_by_product(self, removed_product_id):
+        self._ensure_items_can_change()
         self.items = [item for item in self.items if item.product_id != removed_product_id]
         self.total = self.calculate_total()
 
@@ -98,14 +108,14 @@ class Order:
                 f"Não é possível obter a quantidade separada. "
                 f"O pedido está em estado: {self.status}"
             )
-        
+
     def confirm_payment(self) -> None:
         self.update_status("EM PROCESSAMENTO")
 
     def can_be_separated(self) -> bool:
-        
+
         return self.status == "EM PROCESSAMENTO" and bool(self.items)
-    
+
     def mark_as_separated(self) -> None:
         if not self.items:
             raise ValueError("Pedido sem itens não pode ser separado")
