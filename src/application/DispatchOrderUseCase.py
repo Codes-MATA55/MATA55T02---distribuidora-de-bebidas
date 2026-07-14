@@ -6,6 +6,7 @@ from application.RoutingPort import RoutingPort
 from domain.Order.Repository import OrderRepository
 
 class OrderNotFound(Exception):
+    pass
    
 class DispatchOrderUseCase:
   
