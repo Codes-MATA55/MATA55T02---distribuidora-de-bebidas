@@ -1,0 +1,13 @@
+[importlinter]
+root_packages =
+    infrastructure
+    application
+    domain
+
+[importlinter:contract:camadas]
+name = Dependencias apontam para dentro (infrastructure -> application -> domain)
+type = layers
+layers =
+    infrastructure
+    application
+    domain
