@@ -34,4 +34,3 @@ class OrderItem:
 
     def is_fully_separated(self) -> bool:
         return self.separated_amount == self.amount
-    

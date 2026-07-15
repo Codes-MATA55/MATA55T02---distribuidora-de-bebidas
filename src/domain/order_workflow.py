@@ -24,4 +24,3 @@ class OrderWorkflow:
         self._order_repository.save(order)
         self._shipment_notifier.notify_shipped(order)
         return tracking_code
-    
