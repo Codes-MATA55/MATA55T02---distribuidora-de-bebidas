@@ -123,6 +123,9 @@ class Order:
             raise ValueError("Pedido não pode ser marcado como separado com itens pendentes")
         self.update_status("SEPARADO")
 
+    def _generate_tracking_code(self) -> str:
+        return f"TRK-{str(self.id)[:8].upper()}-{uuid4().hex[:6].upper()}"
+
     def ship(self) -> str:
         if self.shipped_at is not None:
             raise ValueError("Pedido já foi expedido")
