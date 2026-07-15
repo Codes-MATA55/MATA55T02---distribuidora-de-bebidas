@@ -108,6 +108,7 @@ class Order:
                 f"Não é possível obter a quantidade separada. "
                 f"O pedido está em estado: {self.status}"
             )
+        return sum(item.separated_amount for item in self.items)
 
     def confirm_payment(self) -> None:
         self.update_status("EM PROCESSAMENTO")
