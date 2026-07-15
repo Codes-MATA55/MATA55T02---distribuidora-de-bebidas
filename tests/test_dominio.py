@@ -244,5 +244,10 @@ class TestPedido:
         p.expedir()
         
         # Tenta cancelar e garante que o sistema bloqueie com a mensagem exata
-        with pytest.raises(ValueError, match="Não é possível cancelar um pedido já expedido."):
+        with pytest.raises(
+            ValueError, 
+            match="Não é possível cancelar um pedido já expedido."
+        ):
             p.cancelar()
+
+            
