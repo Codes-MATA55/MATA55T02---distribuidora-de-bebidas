@@ -1,3 +1,5 @@
+from domain.enums.tipo_movimentacao import BeverageCategory
+
 class Product:
     def __init__(
         self,
@@ -8,7 +10,8 @@ class Product:
         barcode: str,
         price: float,
         amount_stock: int,
-        supplier: str
+        supplier: str,
+        category: BeverageCategory | str | None = None,
     ):
         
         if not id or not id.strip():
@@ -26,14 +29,15 @@ class Product:
         if amount_stock < 0:
             raise ValueError("amount em estoque não pode ser negativa")
 
-        self._id = id.strip()
+        self._id = str(id).strip()
         self._brand = brand.strip()
         self._name = name.strip()
         self._description = description.strip()
         self._barcode = barcode.strip()
         self._price = price
         self._amount_stock = amount_stock
-        self._supplier = supplier
+        self._supplier = supplier        
+        self._category = self._normalize_category(category)
 
     @property
     def id(self):
@@ -70,6 +74,10 @@ class Product:
     @property
     def supplier(self):
         return self._supplier
+    
+    @property
+    def category(self):
+        return self._category
 
     def add_stock(self, amount: int):
         if amount <= 0:
