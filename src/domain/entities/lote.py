@@ -1,23 +1,28 @@
 from datetime import date
 from domain.entities.produto import Product
+from domain.value_objects.faixa_validade import ValidityWindow
 from domain.value_objects.ids import BatchId
+from domain.value_objects.quantidade import Quantity
 
 
 class Batch:
-    def __init__(self, product: Product, initial_amount: int, expiration_date: date, id: BatchId = None):
-        if initial_amount <= 0:
-            raise ValueError("A amount inicial do lote deve ser maior que zero")
-        if not isinstance(expiration_date, date):
-            raise ValueError("A data de validade deve ser um objeto válido do tipo date")
-        
+    def __init__(self, 
+                 product: Product,
+                 initial_amount: int, 
+                 expiration_date: date, id: BatchId = None):
+
+        initial_quantity = Quantity.positive(initial_amount)
+        validity_window = ValidityWindow(expiration_date)
+
         self._id = id or BatchId()
         self._product = product
-        self._initial_amount = initial_amount
-        self._current_amount = initial_amount
-        self._expiration_date = expiration_date
+        self._initial_amount = initial_quantity.value
+        self._current_amount = initial_quantity.value
+        self._validity_window = validity_window
+        self._expiration_date = validity_window.expiration_date
 
     @property
-    def id(self) -> int:
+    def id(self) -> BatchId:
         return self._id
 
     @property
@@ -37,22 +42,17 @@ class Batch:
         return self._expiration_date
 
     def is_expired(self, reference_date: date = None) -> bool:
-        # Verifica se o lote está vencido com base em uma data de referência (padrão: hoje).
-        if reference_date is None:
-            reference_date = date.today()
-        return self._expiration_date < reference_date
+        return self._validity_window.is_expired(reference_date)
 
     def consume_amount(self, amount: int):
-        # Consome uma quantidade do lote garantindo que não fique negativa.
-        if amount <= 0:
-            raise ValueError("A quantidade a ser consumida deve ser maior que zero")
-        if amount > self._current_amount:
+        quantity = Quantity.positive(amount)
+        if quantity.value > self._current_amount:
             raise ValueError(
                 f"Saldo insuficiente no lote {self._id}. "
-                f"Disponível: {self._current_amount}, Solicitado: {amount}"
+                f"Disponível: {self._current_amount}, Solicitado: {quantity.value}"
             )
-        self._current_amount -= amount
-    
+        self._current_amount = Quantity(self._current_amount).subtract(quantity).value
+
     def can_supply(self, amount: int, reference_date: date = None) -> bool:
         return not self.is_expired(reference_date) and self.current_amount >= amount
 
