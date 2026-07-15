@@ -136,3 +136,22 @@ class Order:
         self.shipped_at = datetime.now()
         self.update_status("EM TRANSPORTE")
         return self.tracking_code
+
+    def to_dict(self) -> dict:
+        return {
+            "id": str(self.id),
+            "client_id": str(self.client_id),
+            "status": self.status,
+            "total": self.total.value_str,
+            "items": [
+                {
+                    "product_id": item.product_id,
+                    "amount": item.amount,
+                    "unit_price": item.unit_price.value_str,
+                    "separated_amount": item.separated_amount,
+                }
+                for item in self.items
+            ],
+            "shipped_at": self.shipped_at.isoformat() if self.shipped_at else None,
+            "tracking_code": self.tracking_code,
+        }
