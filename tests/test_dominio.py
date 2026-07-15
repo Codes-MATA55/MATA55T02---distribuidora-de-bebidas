@@ -230,3 +230,19 @@ class TestPedido:
         # Não pode expedir sem separar
         with pytest.raises(ValueError):
             p.expedir()
+          
+    def test_nao_cancelar_apos_expedido(self):
+        """Garante que um pedido expedido nunca possa ser cancelado."""
+        # Usamos as funções de ajuda que já existem na classe para criar o pedido
+        p = self._pedido()
+        p.adicionar_item(self._item())
+        
+        # Avançamos o pedido por todo o ciclo até ser expedido
+        p.submeter()
+        p.aprovar()
+        p.separar()
+        p.expedir()
+        
+        # Tenta cancelar e garante que o sistema bloqueie com a mensagem exata
+        with pytest.raises(ValueError, match="Não é possível cancelar um pedido já expedido."):
+            p.cancelar()
