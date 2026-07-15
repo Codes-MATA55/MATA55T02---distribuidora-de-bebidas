@@ -17,6 +17,9 @@ from .repositorios import (
 )
 
 
+from datetime import date
+
+
 # ─────────────────────────────────────────────────────────────
 # AUTENTICAÇÃO
 # ─────────────────────────────────────────────────────────────
@@ -224,15 +227,14 @@ class ServicoEstoque:
 
     def adicionar_lote(self, solicitante: UsuarioBase, dados: dict) -> dict:
         self._exigir("estoque:adicionar", solicitante)
-        from datetime import date as dt
         bebida = self._repo_bebida.buscar_por_id(dados["bebida_id"])
         if not bebida:
             raise ValueError("Bebida não encontrada.")
         lote = Lote(
             bebida_id=dados["bebida_id"],
             quantidade=dados["quantidade"],
-            data_fabricacao=dt.fromisoformat(dados["data_fabricacao"]),
-            data_validade=dt.fromisoformat(dados["data_validade"]),
+            data_fabricacao=date.fromisoformat(dados["data_fabricacao"]),
+            data_validade=date.fromisoformat(dados["data_validade"]),
             codigo_lote=dados["codigo_lote"],
         )
         self._repo_estoque.salvar_lote(lote)
@@ -247,14 +249,13 @@ class ServicoEstoque:
 
     def editar_lote(self, solicitante: UsuarioBase, lote_id: str, dados: dict) -> dict:
         self._exigir("estoque:adicionar", solicitante)
-        from datetime import date as dt
         lotes = self._repo_estoque.listar_lotes()
         lote = next((lote_obj for lote_obj in lotes if lote_obj.id == lote_id), None)
         if not lote:
             raise ValueError("Lote não encontrado.")
         lote.atualizar(
-            data_fabricacao=dt.fromisoformat(dados["data_fabricacao"]) if "data_fabricacao" in dados else None,
-            data_validade=dt.fromisoformat(dados["data_validade"]) if "data_validade" in dados else None,
+            data_fabricacao=date.fromisoformat(dados["data_fabricacao"]) if "data_fabricacao" in dados else None,
+            data_validade=date.fromisoformat(dados["data_validade"]) if "data_validade" in dados else None,
             codigo_lote=dados.get("codigo_lote"),
         )
         self._repo_estoque.salvar_lote(lote)
