@@ -25,3 +25,13 @@ class StockMovement:
             self.product.add_stock(self.amount)
         elif self.type == MovementType.OUTBOUND:
             self.product.remove_stock(self.amount)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": str(self.id),
+            "product_id": self.product.id,
+            "product_name": self.product.name,
+            "type": self.type.value,
+            "amount": self.amount,
+            "movement_date": self.movement_date.isoformat(),
+        }

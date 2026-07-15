@@ -52,3 +52,15 @@ class Batch:
                 f"Disponível: {self._current_amount}, Solicitado: {amount}"
             )
         self._current_amount -= amount
+    
+    def can_supply(self, amount: int, reference_date: date = None) -> bool:
+        return not self.is_expired(reference_date) and self.current_amount >= amount
+
+    def to_dict(self) -> dict:
+        return {
+            "id": str(self.id),
+            "product_id": self.product.id,
+            "initial_amount": self.initial_amount,
+            "current_amount": self.current_amount,
+            "expiration_date": self.expiration_date.isoformat(),
+        }
