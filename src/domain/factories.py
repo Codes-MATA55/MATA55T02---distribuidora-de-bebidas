@@ -43,3 +43,4 @@ class OrderFactory:
         order = OrderFactory.empty()
         order.add_item(OrderItem(product.id, order_data["amount"], order_data["unit_price"]))
         return order
+    

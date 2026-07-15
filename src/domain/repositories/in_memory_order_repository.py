@@ -13,3 +13,4 @@ class InMemoryOrderRepository:
 
     def list_all(self) -> list[dict]:
         return [dict(order) for order in self._orders.values()]
+    

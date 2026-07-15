@@ -15,3 +15,4 @@ class OrderRepository(Protocol):
 class ShipmentNotifier(Protocol):
     def notify_shipped(self, order: Order) -> None:
         pass
+    

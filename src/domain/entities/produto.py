@@ -137,3 +137,4 @@ class Product:
             "supplier": self.supplier,
             "category": self.category.value if self.category else None,
         }
+    

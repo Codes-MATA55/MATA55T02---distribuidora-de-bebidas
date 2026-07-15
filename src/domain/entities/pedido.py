@@ -156,3 +156,4 @@ class Order:
             "shipped_at": self.shipped_at.isoformat() if self.shipped_at else None,
             "tracking_code": self.tracking_code,
         }
+    

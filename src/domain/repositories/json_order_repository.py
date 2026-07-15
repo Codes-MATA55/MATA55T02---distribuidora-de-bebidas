@@ -22,3 +22,4 @@ class JsonOrderRepository:
 
     def list_all(self) -> list[dict]:
         return read_json(self._path, default=[])
+    
