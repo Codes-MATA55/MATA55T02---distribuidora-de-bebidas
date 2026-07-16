@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    container_name: distribuidora_api
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-distribuidora-secret-poo-2026}
+      - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
+      - JWT_SECRET=${JWT_SECRET:-distribuidora-jwt-secret}
+      - DB_JSON_PATH=/app/data/db.json
+    volumes:
+      # Monta data/ para persistir o JSON fora do container
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/auth/login/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

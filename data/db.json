@@ -1,0 +1,445 @@
+{
+  "usuarios": [
+    {
+      "id": "usr-001",
+      "nome": "Admin Sistema",
+      "login": "admin",
+      "senha_uid": "uid-admin-001",
+      "tipo": "administrador",
+      "ativo": true,
+      "criado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "usr-002",
+      "nome": "Júlio Coelho",
+      "login": "julio.coelho",
+      "senha_uid": "uid-gerente-002",
+      "tipo": "gerencia",
+      "ativo": true,
+      "criado_em": "2026-01-10T08:00:00"
+    },
+    {
+      "id": "usr-003",
+      "nome": "Maria Estoque",
+      "login": "maria.estoque",
+      "senha_uid": "uid-estoque-003",
+      "tipo": "estoque",
+      "ativo": true,
+      "criado_em": "2026-01-15T08:00:00"
+    },
+    {
+      "id": "usr-004",
+      "nome": "João Estoque",
+      "login": "joao.estoque",
+      "senha_uid": "uid-estoque-004",
+      "tipo": "estoque",
+      "ativo": true,
+      "criado_em": "2026-01-20T08:00:00"
+    },
+    {
+      "id": "usr-cdb7c6a5",
+      "nome": "Maria Santos",
+      "login": "maria",
+      "tipo": "requisitante",
+      "ativo": true,
+      "criado_em": "2026-06-11T15:49:36.485183",
+      "senha_uid": "uid-maria-001"
+    }
+  ],
+  "categorias_bebida": [
+    {
+      "id": "cat-001",
+      "nome": "Cerveja",
+      "descricao": "Bebidas fermentadas à base de malte e lúpulo",
+      "alcoolica": true,
+      "criado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "cat-002",
+      "nome": "Refrigerante",
+      "descricao": "Bebidas gaseificadas não alcoólicas",
+      "alcoolica": false,
+      "criado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "cat-003",
+      "nome": "Suco",
+      "descricao": "Sucos naturais e nectares",
+      "alcoolica": false,
+      "criado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "cat-e7141af4",
+      "nome": "Bebida Alcoólica Mista",
+      "descricao": "Bebidas gaseificadas e adocicadas",
+      "alcoolica": true,
+      "criado_em": "2026-06-11T18:50:18.777828"
+    }
+  ],
+  "bebidas": [
+    {
+      "id": "beb-001",
+      "nome": "Skol Lata 350ml",
+      "categoria_id": "cat-001",
+      "marca": "Skol",
+      "volume_ml": 350,
+      "teor_alcoolico": 4.7,
+      "fornecedor": "AmBev",
+      "ativo": true,
+      "criado_em": "2026-01-01T00:00:00",
+      "atualizado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "beb-002",
+      "nome": "Coca-Cola 2L",
+      "categoria_id": "cat-002",
+      "marca": "Coca-Cola",
+      "volume_ml": 2000,
+      "teor_alcoolico": null,
+      "fornecedor": "Coca-Cola Brasil",
+      "ativo": true,
+      "criado_em": "2026-01-01T00:00:00",
+      "atualizado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "beb-003",
+      "nome": "Del Valle Laranja 1L",
+      "categoria_id": "cat-003",
+      "marca": "Del Valle",
+      "volume_ml": 1000,
+      "teor_alcoolico": null,
+      "fornecedor": "Coca-Cola Brasil",
+      "ativo": true,
+      "criado_em": "2026-01-01T00:00:00",
+      "atualizado_em": "2026-01-01T00:00:00"
+    },
+    {
+      "id": "beb-004",
+      "nome": "Heineken 600ml",
+      "categoria_id": "cat-001",
+      "marca": "Heineken",
+      "volume_ml": 600,
+      "teor_alcoolico": 5,
+      "fornecedor": "Distribuidora XYZ",
+      "ativo": true,
+      "criado_em": "2026-06-11T16:05:35.979664",
+      "atualizado_em": "2026-06-11T16:05:35.979667"
+    },
+    {
+      "id": "beb-9287fae6",
+      "nome": "Ice Smirnoff",
+      "categoria_id": "cat-e7141af4",
+      "marca": "Smirnoff",
+      "volume_ml": 275,
+      "teor_alcoolico": 5,
+      "fornecedor": "Distribuidora XYZ",
+      "ativo": true,
+      "criado_em": "2026-06-16T17:52:59.258803",
+      "atualizado_em": "2026-06-16T17:52:59.258809"
+    }
+  ],
+  "lotes": [
+    {
+      "id": "lot-001",
+      "bebida_id": "beb-001",
+      "quantidade": 1200,
+      "quantidade_disponivel": 1200,
+      "data_fabricacao": "2026-03-01",
+      "data_validade": "2027-03-01",
+      "codigo_lote": "SKL-2026-001",
+      "criado_em": "2026-03-05T08:00:00"
+    },
+    {
+      "id": "lot-002",
+      "bebida_id": "beb-002",
+      "quantidade": 500,
+      "quantidade_disponivel": 500,
+      "data_fabricacao": "2026-04-01",
+      "data_validade": "2026-10-01",
+      "codigo_lote": "CC-2026-001",
+      "criado_em": "2026-04-05T08:00:00"
+    },
+    {
+      "id": "lot-003",
+      "bebida_id": "beb-003",
+      "quantidade": 800,
+      "quantidade_disponivel": 800,
+      "data_fabricacao": "2026-04-10",
+      "data_validade": "2026-07-10",
+      "codigo_lote": "DV-2026-001",
+      "criado_em": "2026-04-10T08:00:00"
+    },
+    {
+      "id": "lot-004",
+      "bebida_id": "beb-004",
+      "quantidade": 500,
+      "quantidade_disponivel": 275,
+      "data_fabricacao": "2026-04-10",
+      "data_validade": "2026-07-10",
+      "codigo_lote": "DV-2026-001",
+      "criado_em": "2026-04-10T08:00:00"
+    },
+    {
+      "id": "lot-5c44a5cd",
+      "bebida_id": "beb-004",
+      "quantidade": 100,
+      "quantidade_disponivel": 100,
+      "data_fabricacao": "2026-01-01",
+      "data_validade": "2027-01-01",
+      "codigo_lote": "LOT-2026-001",
+      "criado_em": "2026-06-11T18:45:05.818558"
+    },
+    {
+      "id": "lot-ad97bf3b",
+      "bebida_id": "beb-9287fae6",
+      "quantidade": 100,
+      "quantidade_disponivel": 0,
+      "data_fabricacao": "2026-01-01",
+      "data_validade": "2027-01-01",
+      "codigo_lote": "LOT-2026-001",
+      "criado_em": "2026-06-16T17:53:32.502053"
+    }
+  ],
+  "estoque": [
+    {
+      "bebida_id": "beb-001",
+      "quantidade_total": 1200,
+      "quantidade_reservada": 0,
+      "quantidade_disponivel": 1200,
+      "atualizado_em": "2026-04-01T08:00:00"
+    },
+    {
+      "bebida_id": "beb-002",
+      "quantidade_total": 500,
+      "quantidade_reservada": 0,
+      "quantidade_disponivel": 500,
+      "atualizado_em": "2026-04-01T08:00:00"
+    },
+    {
+      "bebida_id": "beb-003",
+      "quantidade_total": 800,
+      "quantidade_reservada": 0,
+      "quantidade_disponivel": 800,
+      "atualizado_em": "2026-04-01T08:00:00"
+    },
+    {
+      "bebida_id": "beb-004",
+      "quantidade_total": 375,
+      "quantidade_reservada": 0,
+      "quantidade_disponivel": 375,
+      "atualizado_em": "2026-06-13T19:59:28.430951"
+    },
+    {
+      "bebida_id": "beb-9287fae6",
+      "quantidade_total": 0,
+      "quantidade_reservada": 0,
+      "quantidade_disponivel": 0,
+      "atualizado_em": "2026-06-18T16:05:00.318339"
+    }
+  ],
+  "pedidos": [
+    {
+      "id": "req-001",
+      "usuario_id": "usr-004",
+      "motivo": "abastecimento_interno",
+      "status": "separado",
+      "criado_em": "2026-04-01T09:00:00",
+      "itens": [
+        {
+          "bebida_id": "beb-001",
+          "nome_bebida": "Skol Lata",
+          "quantidade": 20
+        }
+      ]
+    },
+    {
+      "id": "85393169-ab6b-45d0-8d9f-a63985928258",
+      "usuario_id": "usr-cdb7c6a5",
+      "motivo": "abastecimento_interno",
+      "status": "cancelado",
+      "criado_em": "2026-06-11T17:25:49.931255",
+      "itens": [
+        {
+          "bebida_id": "beb-004",
+          "nome_bebida": "Heineken 600ml",
+          "quantidade": 10
+        }
+      ]
+    },
+    {
+      "id": "514c37ac-1c0a-4ae4-869b-12b8204cfe4b",
+      "usuario_id": "usr-001",
+      "motivo": "abastecimento_interno",
+      "status": "separado",
+      "criado_em": "2026-06-11T19:03:21.049450",
+      "itens": [
+        {
+          "bebida_id": "beb-004",
+          "nome_bebida": "Heineken 600ml",
+          "quantidade": 5
+        }
+      ]
+    },
+    {
+      "id": "863d083b-50b4-4181-af27-15dac1da499c",
+      "usuario_id": "usr-001",
+      "motivo": "abastecimento_interno",
+      "status": "separado",
+      "criado_em": "2026-06-11T23:16:11.532009",
+      "itens": [
+        {
+          "bebida_id": "beb-004",
+          "nome_bebida": "Heineken 600ml",
+          "quantidade": 10
+        }
+      ]
+    },
+    {
+      "id": "38fbe8eb-b45a-4da7-831c-f70cc6df8aaa",
+      "usuario_id": "usr-001",
+      "motivo": "abastecimento_interno",
+      "status": "separado",
+      "criado_em": "2026-06-11T23:16:14.606957",
+      "itens": [
+        {
+          "bebida_id": "beb-004",
+          "nome_bebida": "Heineken 600ml",
+          "quantidade": 10
+        }
+      ]
+    },
+    {
+      "id": "8b54d91e-0bbc-4462-a961-f19bf2bf3b86",
+      "usuario_id": "usr-001",
+      "motivo": "abastecimento_interno",
+      "status": "expedido",
+      "criado_em": "2026-06-11T23:17:26.890334",
+      "itens": [
+        {
+          "bebida_id": "beb-004",
+          "nome_bebida": "Heineken 600ml",
+          "quantidade": 5
+        }
+      ]
+    },
+    {
+      "id": "fab3db44-a61e-4190-ad0f-403578b5aeb2",
+      "usuario_id": "usr-cdb7c6a5",
+      "motivo": "abastecimento_interno",
+      "status": "expedido",
+      "criado_em": "2026-06-13T19:57:04.261768",
+      "itens": [
+        {
+          "bebida_id": "beb-004",
+          "nome_bebida": "Heineken 600ml",
+          "quantidade": 200
+        }
+      ]
+    },
+    {
+      "id": "46bbf55e-1420-4c22-a785-ef694d52afa4",
+      "usuario_id": "usr-001",
+      "motivo": "abastecimento_interno",
+      "status": "separado",
+      "criado_em": "2026-06-18T16:03:48.176381",
+      "itens": [
+        {
+          "bebida_id": "beb-9287fae6",
+          "nome_bebida": "Ice Smirnoff",
+          "quantidade": 100
+        }
+      ]
+    }
+  ],
+  "movimentacoes_estoque": [
+    {},
+    {
+      "id": "mov-20260611172549954333",
+      "bebida_id": "beb-004",
+      "quantidade": 10,
+      "tipo": "saida_abastecimento_interno",
+      "pedido_id": "85393169-ab6b-45d0-8d9f-a63985928258",
+      "criado_em": "2026-06-11T17:25:49.954379"
+    },
+    {
+      "id": "mov-20260611184505823991",
+      "bebida_id": "beb-004",
+      "quantidade": 100,
+      "tipo": "entrada",
+      "pedido_id": null,
+      "criado_em": "2026-06-11T18:45:05.824381"
+    },
+    {
+      "id": "mov-20260611190321059073",
+      "bebida_id": "beb-004",
+      "quantidade": 5,
+      "tipo": "saida_abastecimento_interno",
+      "pedido_id": "514c37ac-1c0a-4ae4-869b-12b8204cfe4b",
+      "criado_em": "2026-06-11T19:03:21.059151"
+    },
+    {
+      "id": "mov-20260611231611542933",
+      "bebida_id": "beb-004",
+      "quantidade": 10,
+      "tipo": "saida_abastecimento_interno",
+      "pedido_id": "863d083b-50b4-4181-af27-15dac1da499c",
+      "criado_em": "2026-06-11T23:16:11.543008"
+    },
+    {
+      "id": "mov-20260611231614623005",
+      "bebida_id": "beb-004",
+      "quantidade": 10,
+      "tipo": "saida_abastecimento_interno",
+      "pedido_id": "38fbe8eb-b45a-4da7-831c-f70cc6df8aaa",
+      "criado_em": "2026-06-11T23:16:14.623096"
+    },
+    {
+      "id": "mov-20260611231726919796",
+      "bebida_id": "beb-004",
+      "quantidade": 5,
+      "tipo": "saida_abastecimento_interno",
+      "pedido_id": "8b54d91e-0bbc-4462-a961-f19bf2bf3b86",
+      "criado_em": "2026-06-11T23:17:26.919878"
+    },
+    {
+      "id": "mov-20260613195928433085",
+      "bebida_id": "beb-004",
+      "quantidade": 200,
+      "tipo": "saida_abastecimento_interno",
+      "pedido_id": "fab3db44-a61e-4190-ad0f-403578b5aeb2",
+      "criado_em": "2026-06-13T19:59:28.433133"
+    },
+    {
+      "id": "mov-20260616174258452653",
+      "bebida_id": "beb-004",
+      "quantidade": 200,
+      "tipo": "expedicao",
+      "pedido_id": "fab3db44-a61e-4190-ad0f-403578b5aeb2",
+      "criado_em": "2026-06-16T17:42:58.452695"
+    },
+    {
+      "id": "mov-20260616175332519377",
+      "bebida_id": "beb-9287fae6",
+      "quantidade": 100,
+      "tipo": "entrada",
+      "pedido_id": null,
+      "criado_em": "2026-06-16T17:53:32.519708"
+    },
+    {
+      "id": "mov-20260618160245174835",
+      "bebida_id": "beb-004",
+      "quantidade": 5,
+      "tipo": "expedicao",
+      "pedido_id": "8b54d91e-0bbc-4462-a961-f19bf2bf3b86",
+      "criado_em": "2026-06-18T16:02:45.174903"
+    },
+    {
+      "id": "mov-20260618160500335169",
+      "bebida_id": "beb-9287fae6",
+      "quantidade": 100,
+      "tipo": "separacao_abastecimento_interno",
+      "pedido_id": "46bbf55e-1420-4c22-a785-ef694d52afa4",
+      "criado_em": "2026-06-18T16:05:00.335244"
+    }
+  ]
+}
