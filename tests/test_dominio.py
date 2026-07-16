@@ -249,4 +249,5 @@ class TestPedido:
             match="Não é possível cancelar um pedido já expedido."
         ):
             p.cancelar()
+
         
